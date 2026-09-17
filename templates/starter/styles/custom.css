@@ -1,0 +1,4 @@
+/* Scope local revisions to stable slide IDs. */
+[data-slide-id="intro"] .intro-orbit { position:absolute; width:500px; height:500px; border:1px solid var(--line); border-radius:50%; right:-320px; top:90px; z-index:-1; }
+[data-slide-id="workflow"] .process { margin-top:56px; }
+[data-slide-id="workflow"] .workflow-note { margin-top:48px; color:var(--muted); }

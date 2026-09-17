@@ -1,0 +1,15 @@
+/target/
+**/node_modules/
+**/.browsers/
+**/.npm-cache/
+**/.decksmith/
+**/dist/
+.DS_Store
+/examples/product/lib/
+/examples/product/tooling/
+/examples/product/styles/theme.css
+/examples/product/styles/paper.css
+/examples/product/AGENTS.md
+/examples/product/README.md
+/examples/product/docs/
+/verification/

@@ -1,0 +1,17 @@
+<script>
+(() => {
+  let revision = /*decksmith-revision*/0;
+  const error = document.createElement('pre');
+  error.id = 'deck-build-error';
+  Object.assign(error.style, {position:'fixed',inset:'16px',zIndex:100,background:'#2c1018',color:'#fff',padding:'24px',whiteSpace:'pre-wrap'});
+  error.hidden = true; document.body.append(error);
+  setInterval(async () => {
+    try {
+      const state = await (await fetch('__decksmith/status', {cache:'no-store'})).json();
+      error.hidden = !state.error; error.textContent = state.error || '';
+      if (revision !== undefined && revision !== state.revision && !state.error) location.reload();
+      revision = state.revision;
+    } catch { /* The preview may be restarting. */ }
+  }, 600);
+})();
+</script>

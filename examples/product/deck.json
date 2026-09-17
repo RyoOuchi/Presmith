@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "title": "Decksmith / A presentation, in source",
+  "width": 1280,
+  "height": 720,
+  "slides": [
+    {"id":"intro","source":"slides/intro.html","title":"A presentation, in source","notes":"A local prototype for developers who already work with a coding agent. The name is provisional."},
+    {"id":"friction","source":"slides/friction.html","title":"Keep the edit small","notes":"Describe workflow tradeoffs, not measured performance claims."},
+    {"id":"loop","source":"slides/loop.html","title":"A loop you can trust","notes":"The agent must open and inspect the images, not merely generate them."},
+    {"id":"architecture","source":"slides/architecture.html","title":"Three parts, clear responsibilities","notes":"Rust owns assembly and the loopback server. Node and Chromium handle layout and PDF printing. Codex supplies the intelligence."},
+    {"id":"source","source":"slides/source.html","title":"Nothing between you and the HTML","notes":"Stable IDs control diagnostics and revisions. Manifest ordering is independent of filenames."},
+    {"id":"revision","source":"slides/revision.html","title":"One request. One focused change.","notes":"One slide is the intended scope of this example revision, not a measured productivity result."},
+    {"id":"lab","source":"slides/lab.html","title":"Live in the room. Stable on the page.","notes":"The chart is illustrative only. Drag the input during presentation. Export resets to 60 percent."},
+    {"id":"next","source":"slides/next.html","title":"Make the story yours","notes":"Show the exact commands. No accounts, model API calls, or publishing built into this toolkit."}
+  ],
+  "styles":["styles/theme.css","styles/custom.css"],
+  "scripts":["scripts/custom.js"]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "title": "A better way to tell the story",
+  "width": 1280,
+  "height": 720,
+  "slides": [
+    { "id": "intro", "source": "slides/intro.html", "title": "Start with an idea", "notes": "Introduce the audience and the decision this talk supports." },
+    { "id": "workflow", "source": "slides/workflow.html", "title": "Make the idea clear", "notes": "Replace these three steps with your own narrative." },
+    { "id": "next", "source": "slides/next.html", "title": "Make the next move", "notes": "End with a concrete action." }
+  ],
+  "styles": ["styles/theme.css", "styles/custom.css"],
+  "scripts": ["scripts/custom.js"]
+}
