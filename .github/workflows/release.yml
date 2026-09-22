@@ -1,0 +1,156 @@
+name: Tagged release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: presmith-release
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  PYTHONDONTWRITEBYTECODE: '1'
+  MACOSX_DEPLOYMENT_TARGET: '14.0'
+
+jobs:
+  build:
+    name: Build and verify Apple Silicon release
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install Rust toolchain and license documentation
+        run: |
+          rustup toolchain install stable --profile default --component clippy,rustfmt,rust-docs
+          rustup default stable
+      - name: Validate version and release notes
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+        run: |
+          python3 scripts/release.py metadata --tag "$RELEASE_TAG" \
+            --output "$RUNNER_TEMP/release.json" --github-output "$GITHUB_OUTPUT"
+          python3 -m unittest discover -s tests -p 'test_release.py' -v
+      - name: Verify committed editor assets
+        run: |
+          npm ci --ignore-scripts --prefix editor
+          npm run format:check --prefix editor
+          npm run build --prefix editor
+          git diff --exit-code -- editor/build
+      - name: Check Rust
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
+      - name: Package and verify archives
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          python3 scripts/package-release.py
+          python3 scripts/release.py verify --metadata "$RUNNER_TEMP/release.json" \
+            --artifacts "target/release-artifacts/$RELEASE_TAG" \
+            --binary-out "$RUNNER_TEMP/released/presmith"
+          cp "$RUNNER_TEMP/release.json" "target/release-artifacts/$RELEASE_TAG/release.json"
+      - name: Verify fresh renderer setup and both browser suites
+        env:
+          PRESMITH_BIN: ${{ runner.temp }}/released/presmith
+        run: |
+          "$PRESMITH_BIN" init "$RUNNER_TEMP/release-deck"
+          "$PRESMITH_BIN" setup "$RUNNER_TEMP/release-deck"
+          "$PRESMITH_BIN" doctor "$RUNNER_TEMP/release-deck" --json
+          node tests/browser.mjs "$RUNNER_TEMP/release-deck"
+          node tests/editor-browser.mjs "$RUNNER_TEMP/release-deck"
+      - name: Save verified release artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: presmith-release
+          path: target/release-artifacts/${{ steps.release.outputs.tag }}/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save browser verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-verification
+          path: verification/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  publish:
+    name: Publish release and update Homebrew
+    needs: build
+    if: github.event_name == 'push' && github.repository == 'RyoOuchi/Presmith'
+    runs-on: macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      HOMEBREW_DEVELOPER: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require the dedicated Homebrew deploy key
+        env:
+          HOMEBREW_TAP_SSH_KEY: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+        run: |
+          if [ -z "$HOMEBREW_TAP_SSH_KEY" ]; then
+            echo 'Configure HOMEBREW_TAP_SSH_KEY before publishing. See docs/releasing.md.' >&2
+            exit 1
+          fi
+      - name: Check out the Homebrew tap with its dedicated deploy key
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RyoOuchi/homebrew-tap
+          ref: main
+          path: homebrew-tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: presmith-release
+          path: release-artifacts
+      - name: Publish and verify immutable release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/release.py publish --metadata release-artifacts/release.json \
+            --artifacts release-artifacts --verified-dir "$RUNNER_TEMP/published-release"
+      - name: Update the formula from verified published assets
+        run: |
+          python3 scripts/release.py update-formula --metadata release-artifacts/release.json \
+            --artifacts "$RUNNER_TEMP/published-release" --formula homebrew-tap/Formula/presmith.rb
+          git -C homebrew-tap diff --check
+          git -C homebrew-tap config user.name 'github-actions[bot]'
+          git -C homebrew-tap config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C homebrew-tap add Formula/presmith.rb
+          if ! git -C homebrew-tap diff --cached --quiet; then
+            tag=$(python3 -c 'import json; print(json.load(open("release-artifacts/release.json"))["tag"])')
+            git -C homebrew-tap commit -m "Update Presmith to $tag"
+          fi
+      - name: Test the updated Homebrew formula
+        run: |
+          brew tap --custom-remote ryoouchi/tap "$GITHUB_WORKSPACE/homebrew-tap"
+          brew audit --strict --online ryoouchi/tap/presmith
+          brew style ryoouchi/tap/presmith
+          brew install ryoouchi/tap/presmith
+          brew test ryoouchi/tap/presmith
+          presmith init "$RUNNER_TEMP/homebrew-deck"
+          presmith setup "$RUNNER_TEMP/homebrew-deck"
+          presmith doctor "$RUNNER_TEMP/homebrew-deck" --json
+          presmith export "$RUNNER_TEMP/homebrew-deck" --format html --json
+      - name: Push the verified formula
+        run: git -C homebrew-tap push origin HEAD:main
