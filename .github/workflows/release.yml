@@ -91,6 +91,24 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  check-tap-access:
+    name: Verify tap credentials without changes
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'RyoOuchi/Presmith'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the dedicated Homebrew deploy key
+        env:
+          HOMEBREW_TAP_SSH_KEY: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+        run: test -n "$HOMEBREW_TAP_SSH_KEY"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RyoOuchi/homebrew-tap
+          ref: main
+          ssh-key: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+      - name: Verify Git access without changing the tap
+        run: git push --dry-run origin HEAD:main
+
   publish:
     name: Publish release and update Homebrew
     needs: build

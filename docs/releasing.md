@@ -72,8 +72,9 @@ Use **Run workflow** on the Tagged release Actions page, or:
 gh workflow run release.yml --repo RyoOuchi/Presmith --ref main
 ```
 
-A manual run performs the full build and browser verification and saves artifacts.
-It skips release publication and tap writes. Inspect the run's downloadable
+A manual run performs the full build and browser verification, saves artifacts,
+and checks tap credentials with a dry-run Git push. It skips release publication
+and tap writes. Inspect the run's downloadable
 `presmith-release` and `browser-verification` artifacts for results.
 
 ## Credentials and recovery
