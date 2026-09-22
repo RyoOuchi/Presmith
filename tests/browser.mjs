@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import {spawn, execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {once} from 'node:events';
-import {createServer} from 'node:net';
 import {mkdtemp, mkdir, readFile, writeFile, readdir, symlink, rm, cp, realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -140,14 +139,17 @@ try {
   await test('HTML: ordinary static server, subdirectory, navigation, no external requests/dependencies',async()=>{
     const output=path.join(temp,'static','talk');const result=await run(['export',project,'--format','html','--out',output,'--json']);assert.equal(result.artifacts[0].navigation_verified,true);
     const listing=await readdir(output,{recursive:true});assert.ok(!listing.some(p=>/node_modules|tooling|package-lock|deck.json/.test(p)));
-    const socket=createServer();await new Promise(resolve=>socket.listen(0,'127.0.0.1',resolve));const port=socket.address().port;await new Promise(resolve=>socket.close(resolve));
-    const server=start(['-u','-m','http.server',String(port),'--bind','127.0.0.1','--directory',path.dirname(output)],temp,'python3');
-    const url=`http://127.0.0.1:${port}/talk/`;
+    const server=start(['-u',path.join(repo,'tests/static-server.py'),path.dirname(output)],temp,'python3');
+    let url;
     try {
-      await until(async()=>{
+      await until(()=>{
         if(server.child.exitCode!==null)throw new Error(`Static server exited with ${server.child.exitCode}`);
-        try{return (await fetch(url)).ok;}catch{return false;}
-      },'static server');
+        return /http:\/\/127\.0\.0\.1:\d+\//.test(server.stdout);
+      },'static server startup');
+      url=new URL('talk/',server.stdout.match(/http:\/\/127\.0\.0\.1:\d+\//)[0]).href;
+      await until(async()=>{
+        try{return (await fetch(url,{signal:AbortSignal.timeout(1000)})).ok;}catch{return false;}
+      },'static server response');
     } catch(error) {
       throw new Error(`${error.message}\n${server.stdout}\n${server.stderr}`,{cause:error});
     }
