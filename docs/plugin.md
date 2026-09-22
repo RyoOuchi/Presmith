@@ -49,7 +49,7 @@ Current official packaging guidance supports a portable root `plugin.json` and a
 `.codex-plugin/plugin.json` compatibility overlay. Both are included. Skill discovery
 uses `skills/`. The plugin is published by RyoOuchi under the MIT license.
 A downloadable plugin archive is included in the
-[Presmith release](https://github.com/RyoOuchi/Presmith/releases/tag/v0.2.1).
+[Presmith release](https://github.com/RyoOuchi/Presmith/releases/tag/v0.2.2).
 
 From this repository, **if you want to make a local marketplace available**:
 

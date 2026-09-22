@@ -10,7 +10,7 @@ Presmith is available as an MIT-licensed macOS Apple Silicon prerelease.
 Install it with `brew install ryoouchi/tap/presmith`, or download it from
 [GitHub releases](https://github.com/RyoOuchi/Presmith/releases).
 Follow the [installation guide](docs/install.md). See the
-[v0.2.1 release notes](docs/releases/v0.2.1.md) for features and preview limitations.
+[v0.2.2 release notes](docs/releases/v0.2.2.md) for features and preview limitations.
 There is no model API integration, chat UI, account, cloud service, deployment
 feature or MCP server.
 

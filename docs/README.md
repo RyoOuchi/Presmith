@@ -23,6 +23,7 @@ remain compatible.
 | [Editor verification](editor-verification.md) | Editor test evidence and manual inspection boundaries |
 | [Evaluation](evaluation.md) | Protocol for comparative evaluation |
 | [Releasing](releasing.md) | Versioning, packaging, release automation and Homebrew distribution |
+| [v0.2.2 release notes](releases/v0.2.2.md) | Updated skill with visual direction and consistency requirements |
 | [v0.2.1 release notes](releases/v0.2.1.md) | Bundled skills, shared renderer cache and upgrade instructions |
 | [v0.2.0 release notes](releases/v0.2.0.md) | Initial prerelease features and platform limitations |
 

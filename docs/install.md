@@ -1,6 +1,6 @@
 # Install Presmith
 
-The v0.2.1 prerelease provides an `aarch64-apple-darwin` binary for Apple Silicon
+The v0.2.2 prerelease provides an `aarch64-apple-darwin` binary for Apple Silicon
 Macs. Intel Macs, Linux, and Windows do not have verified binaries in this release.
 Use macOS 14 or newer for the full browser workflow, following
 [Playwright's system requirements](https://playwright.dev/docs/intro#system-requirements).
@@ -47,11 +47,11 @@ Run these commands in the directory containing the downloaded archive and
 matching line to verify just the CLI archive:
 
 ```sh
-shasum -a 256 presmith-v0.2.1-aarch64-apple-darwin.tar.gz
+shasum -a 256 presmith-v0.2.2-aarch64-apple-darwin.tar.gz
 # Compare the complete hash with the matching filename in SHA256SUMS.
-tar -xzf presmith-v0.2.1-aarch64-apple-darwin.tar.gz
+tar -xzf presmith-v0.2.2-aarch64-apple-darwin.tar.gz
 mkdir -p "$HOME/.local/bin"
-install -m 755 presmith-v0.2.1-aarch64-apple-darwin/presmith "$HOME/.local/bin/presmith"
+install -m 755 presmith-v0.2.2-aarch64-apple-darwin/presmith "$HOME/.local/bin/presmith"
 export PATH="$HOME/.local/bin:$PATH"
 presmith --version
 ```
@@ -69,7 +69,7 @@ or use the source installation below.
 With stable Rust/Cargo installed:
 
 ```sh
-cargo install --git https://github.com/RyoOuchi/Presmith.git --tag v0.2.1 --locked
+cargo install --git https://github.com/RyoOuchi/Presmith.git --tag v0.2.2 --locked
 presmith --version
 ```
 
@@ -130,7 +130,7 @@ Restart Codex if the skill does not appear. Project and global copies can both
 appear in its picker. Use global installation only if you want that extra scope.
 
 **Older v0.2.0 installations:** upgrade the CLI to use embedded skills and
-`skill install`. The separate `presmith-plugin-v0.2.2.tar.gz` asset also remains
+`skill install`. The separate `presmith-plugin-v0.2.3.tar.gz` asset also remains
 available for marketplace installation or manual copying. Extract it and copy
 `presmith/skills/presmith` into an existing deck's `.agents/skills/` directory,
 preserving any customized folder. See [plugin instructions](plugin.md).

@@ -48,6 +48,55 @@ Inputs can combine: an outline can set order, a script supply narration, a repor
 provide evidence, and a reference establish style. Follow explicit user priorities.
 Resolve material conflicts rather than silently dropping content or changing scope.
 
+### Visual direction and consistency
+
+Unless the user requests otherwise, follow these requirements.
+
+Before authoring:
+
+- Establish one visual system for the entire deck: background,
+  typography, spacing, palette, image treatment, and chart styling.
+- Describe the direction concretely. Words such as “cool,” “modern,”
+  and “professional” are insufficient without specific visual choices.
+- Create and inspect three representative slides first: the cover,
+  a typical content slide, and the most complex evidence slide.
+  Resolve inconsistencies before extending the design to other slides.
+  This is an internal design check, not an approval requirement.
+
+Across the deck:
+
+- Use one base background treatment throughout, including the cover,
+  section dividers, and closing slide. Do not alternate light and dark
+  slides merely to create variety.
+- Vary composition, visual scale, and information density within the
+  established system.
+- Use shared tokens for colors, typography, spacing, and line weights.
+  Do not introduce arbitrary per-slide values.
+- Keep equivalent elements consistent: heading alignment, margins,
+  caption placement, chart labels, and image framing.
+- Assign colors to meanings. The same object, category, or metric must
+  retain its color throughout.
+- Integrate supplied images using one consistent treatment. Their
+  original background must not determine the slide’s theme.
+
+For a substantial redesign:
+
+- Improve hierarchy, composition, and the visual explanation of the
+  content. Recoloring, enlarging text, or rearranging the original
+  text boxes is insufficient.
+- Establish a recognizable visual approach suited to the subject.
+  Avoid applying generic layouts independently to each slide.
+
+Visual acceptance:
+
+- Inspect the contact sheet specifically for visual unity.
+- Reject unexplained changes in background, typography, palette,
+  alignment, or image treatment.
+- Compare representative slides against the original. Identify
+  concrete improvements beyond readability and lack of overflow.
+- Technical checks and successful export do not satisfy this review.
+
+
 ### Plan and author
 
 Infer audience, purpose, approximate duration or slide count, and desired style
