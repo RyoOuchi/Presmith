@@ -170,6 +170,8 @@ jobs:
           fi
       - name: Test the updated Homebrew formula
         run: |
+          # Hosted images can ship older Homebrew than the formula's runtime helpers.
+          brew update
           brew tap --custom-remote ryoouchi/tap "$GITHUB_WORKSPACE/homebrew-tap"
           brew audit --strict --online ryoouchi/tap/presmith
           brew style ryoouchi/tap/presmith
