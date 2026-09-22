@@ -1,6 +1,6 @@
 {
   "name": "presmith",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Create, inspect and revise local HTML presentations with the Presmith CLI.",
   "skills": "./skills/",
   "interface": {

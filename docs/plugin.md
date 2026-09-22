@@ -7,7 +7,7 @@ separately and make `presmith` available in the coding agent's PATH.
 
 ## Bundled skill
 
-Current source builds embed the complete `skills/presmith/` folder in the Presmith
+Version 0.2.1 and newer embed the complete `skills/presmith/` folder in the Presmith
 executable, including references and `agents/openai.yaml`. Every new
 `presmith init DIRECTORY` project contains it at `.agents/skills/presmith/`.
 Codex discovers that project-local folder when working in the deck. Invoke
@@ -40,9 +40,8 @@ Concurrent installers cannot replace the same skill simultaneously.
 
 Existing project-local copies are unchanged when the CLI or global skill updates.
 Codex can list project, user and plugin copies with the same name separately; it
-does not merge them. Choose the installation scope you need. The published v0.2.0
-binary does not contain these new commands; use a current source build or the
-manual copy instructions below with older binaries.
+does not merge them. Choose the installation scope you need. The v0.2.0 binary does not contain these
+commands; upgrade to v0.2.1 or newer, or use the manual copy instructions below.
 
 ## Local plugin installation (opt-in)
 
@@ -50,7 +49,7 @@ Current official packaging guidance supports a portable root `plugin.json` and a
 `.codex-plugin/plugin.json` compatibility overlay. Both are included. Skill discovery
 uses `skills/`. The plugin is published by RyoOuchi under the MIT license.
 A downloadable plugin archive is included in the
-[Presmith release](https://github.com/RyoOuchi/Presmith/releases/tag/v0.2.0).
+[Presmith release](https://github.com/RyoOuchi/Presmith/releases/tag/v0.2.1).
 
 From this repository, **if you want to make a local marketplace available**:
 

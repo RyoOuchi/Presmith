@@ -274,27 +274,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "presmith"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "axum",
- "base64",
- "clap",
- "ctrlc",
- "getrandom 0.2.17",
- "html5gum",
- "image",
- "libc",
- "percent-encoding",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "tokio",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -710,6 +689,27 @@ dependencies = [
  "fdeflate",
  "flate2",
  "miniz_oxide 0.8.9",
+]
+
+[[package]]
+name = "presmith"
+version = "0.2.1"
+dependencies = [
+ "anyhow",
+ "axum",
+ "base64",
+ "clap",
+ "ctrlc",
+ "getrandom 0.2.17",
+ "html5gum",
+ "image",
+ "libc",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]

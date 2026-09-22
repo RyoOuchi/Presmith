@@ -23,7 +23,8 @@ remain compatible.
 | [Editor verification](editor-verification.md) | Editor test evidence and manual inspection boundaries |
 | [Evaluation](evaluation.md) | Protocol for comparative evaluation |
 | [Releasing](releasing.md) | Versioning, packaging, release automation and Homebrew distribution |
-| [v0.2.0 release notes](releases/v0.2.0.md) | Prerelease features and platform limitations |
+| [v0.2.1 release notes](releases/v0.2.1.md) | Bundled skills, shared renderer cache and upgrade instructions |
+| [v0.2.0 release notes](releases/v0.2.0.md) | Initial prerelease features and platform limitations |
 
 The files in `docs/project/` are embedded at compile time and copied to each new
 deck's `docs/` by `presmith init`. Relative links among those files work both here

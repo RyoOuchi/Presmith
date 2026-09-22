@@ -10,7 +10,7 @@ Presmith is available as an MIT-licensed macOS Apple Silicon prerelease.
 Install it with `brew install ryoouchi/tap/presmith`, or download it from
 [GitHub releases](https://github.com/RyoOuchi/Presmith/releases).
 Follow the [installation guide](docs/install.md). See the
-[v0.2.0 release notes](docs/releases/v0.2.0.md) for features and preview limitations.
+[v0.2.1 release notes](docs/releases/v0.2.1.md) for features and preview limitations.
 There is no model API integration, chat UI, account, cloud service, deployment
 feature or MCP server.
 
@@ -155,7 +155,7 @@ illustrative; export resets the slider to 60%.
 
 See [verified local installation instructions and validation boundaries](docs/plugin.md).
 No global Codex settings or personal marketplace were changed by this implementation.
-Current source builds embed the complete skill in the CLI. `presmith init my-talk`
+Presmith v0.2.1 and newer embed the complete skill in the CLI. `presmith init my-talk`
 automatically includes `.agents/skills/presmith/` with its references and picker
 metadata. Open the deck in Codex and use `$presmith`; no separate download or
 plugin registration is needed for this project-local skill.
@@ -171,8 +171,8 @@ presmith skill install --global --force
 Both operations work offline. An identical global copy is left untouched. A
 different copy requires `--force`, which backs it up outside the skill discovery
 folder. The global command does not change Codex settings or marketplace plugins.
-These commands require a build containing this feature; the published v0.2.0
-binary predates it. See [skill installation](docs/plugin.md#bundled-skill).
+These commands require v0.2.1 or newer; upgrade older Homebrew installations
+with `brew update` and `brew upgrade ryoouchi/tap/presmith`. See [skill installation](docs/plugin.md#bundled-skill).
 
 The skill supports
 [seven creation workflows](plugins/presmith/skills/presmith/references/creation-workflows.md):
@@ -321,5 +321,5 @@ cargo build --locked
 node tests/cache.mjs
 ```
 
-Shared-cache support is in this source checkout; older published binaries may
-still use per-project installations.
+Shared-cache support requires v0.2.1 or newer; v0.2.0 uses per-project
+installations. Existing decks migrate on their next `presmith setup`.

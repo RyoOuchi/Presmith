@@ -1,6 +1,6 @@
 # Install Presmith
 
-The v0.2.0 prerelease provides an `aarch64-apple-darwin` binary for Apple Silicon
+The v0.2.1 prerelease provides an `aarch64-apple-darwin` binary for Apple Silicon
 Macs. Intel Macs, Linux, and Windows do not have verified binaries in this release.
 Use macOS 14 or newer for the full browser workflow, following
 [Playwright's system requirements](https://playwright.dev/docs/intro#system-requirements).
@@ -8,8 +8,8 @@ Use macOS 14 or newer for the full browser workflow, following
 The CLI includes its visual editor and project templates. Rust is required only
 when building from source. Browser checks, PNG rendering, PDF, and PowerPoint
 export require Node.js 22+ with npm. `presmith setup` downloads the pinned renderer
-packages and Chromium. Source builds with shared-cache support reuse one versioned
-installation across matching decks; older published binaries install per deck. See
+packages and Chromium. Version 0.2.1 and newer reuse one versioned installation
+across matching decks; v0.2.0 installs per deck. See
 [cache locations and migration](project/cli.md#renderer-cache).
 
 ## Install with Homebrew
@@ -47,11 +47,11 @@ Run these commands in the directory containing the downloaded archive and
 matching line to verify just the CLI archive:
 
 ```sh
-shasum -a 256 presmith-v0.2.0-aarch64-apple-darwin.tar.gz
+shasum -a 256 presmith-v0.2.1-aarch64-apple-darwin.tar.gz
 # Compare the complete hash with the matching filename in SHA256SUMS.
-tar -xzf presmith-v0.2.0-aarch64-apple-darwin.tar.gz
+tar -xzf presmith-v0.2.1-aarch64-apple-darwin.tar.gz
 mkdir -p "$HOME/.local/bin"
-install -m 755 presmith-v0.2.0-aarch64-apple-darwin/presmith "$HOME/.local/bin/presmith"
+install -m 755 presmith-v0.2.1-aarch64-apple-darwin/presmith "$HOME/.local/bin/presmith"
 export PATH="$HOME/.local/bin:$PATH"
 presmith --version
 ```
@@ -69,7 +69,7 @@ or use the source installation below.
 With stable Rust/Cargo installed:
 
 ```sh
-cargo install --git https://github.com/RyoOuchi/Presmith.git --tag v0.2.0 --locked
+cargo install --git https://github.com/RyoOuchi/Presmith.git --tag v0.2.1 --locked
 presmith --version
 ```
 
@@ -104,7 +104,7 @@ backs up replaced renderer files without changing authored slides.
 
 ## Bundled Codex skill
 
-Current source builds embed the complete Presmith skill, including references and
+Version 0.2.1 and newer embed the complete Presmith skill, including references and
 skill picker metadata. `presmith init my-talk` writes it into
 `my-talk/.agents/skills/presmith/`. Open that project in Codex and use `$presmith`.
 No extra download, Node installation or Codex CLI is required to write the skill.
@@ -129,9 +129,8 @@ structured result. A CLI upgrade does not rewrite previously copied skills.
 Restart Codex if the skill does not appear. Project and global copies can both
 appear in its picker. Use global installation only if you want that extra scope.
 
-**Published v0.2.0:** that binary predates embedded skills and `skill install`.
-Build the current checkout with `cargo install --path . --locked` to use these
-features, or use its separate `presmith-plugin-v0.2.1.tar.gz` release asset. Extract
-it and copy `presmith/skills/presmith` into the deck's `.agents/skills/` directory,
-preserving any existing customized folder. The separate plugin remains available
-for marketplace installation. See [plugin instructions](plugin.md).
+**Older v0.2.0 installations:** upgrade the CLI to use embedded skills and
+`skill install`. The separate `presmith-plugin-v0.2.2.tar.gz` asset also remains
+available for marketplace installation or manual copying. Extract it and copy
+`presmith/skills/presmith` into an existing deck's `.agents/skills/` directory,
+preserving any customized folder. See [plugin instructions](plugin.md).

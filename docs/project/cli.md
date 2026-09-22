@@ -137,8 +137,7 @@ presmith skill install --global [--force] [--json]
 
 **Use when:** making the embedded Presmith skill available across this user's
 projects, including older decks. The current directory does not need a manifest.
-This command requires a CLI build containing embedded skills (it is not in the
-published v0.2.0 binary).
+This command requires Presmith v0.2.1 or newer.
 
 | Option | Default | Meaning |
 |---|---|---|

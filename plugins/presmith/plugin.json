@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "presmith",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Create, inspect and revise local HTML presentations with the Presmith CLI.",
   "author": {
     "name": "RyoOuchi",
