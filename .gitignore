@@ -16,3 +16,5 @@
 
 # The compiled editor is shipped in the Rust binary.
 !editor/build/
+
+**/.presmith-setup*

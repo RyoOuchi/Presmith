@@ -19,6 +19,9 @@ compatible: `deck.json`, `lib/decksmith.css`, `lib/decksmith.js`, the
 `window.Decksmith` browser API, and `.decksmith/` output paths retain their existing
 names. Use `presmith` for CLI commands and `$presmith` for the bundled Codex skill.
 
+See the [documentation index](docs/README.md), [complete command reference](docs/project/cli.md),
+and [use cases and recipes](docs/project/use-cases.md) for detailed workflows and options.
+
 ## Quick start
 
 On an Apple Silicon Mac with **macOS 14 or newer** and
@@ -37,7 +40,10 @@ presmith edit --open
 ```
 
 Homebrew installs Node.js 24 and npm and selects that runtime for Presmith.
-`setup` downloads pinned Playwright packages and Chromium into the deck. No global npm packages are needed. See
+`setup` reuses a shared, versioned cache of pinned Playwright packages and Chromium.
+Matching decks share one installation; `setup --local` opts into a self-contained
+installation. See [renderer cache and migration](docs/project/cli.md#renderer-cache)
+for paths, cleanup and existing decks. No global npm packages are needed. See
 [Install Presmith](docs/install.md) for manual and source installation, or run
 `cargo install --path . --locked` from a source checkout with stable Rust/Cargo.
 Browser operations require **Node.js 22+ and npm**. Linux may require
@@ -149,8 +155,26 @@ illustrative; export resets the slider to 60%.
 
 See [verified local installation instructions and validation boundaries](docs/plugin.md).
 No global Codex settings or personal marketplace were changed by this implementation.
-Use the repository-local plugin or copy its self-contained skill into a deck's
-`.agents/skills/presmith/`. Install the CLI separately. The skill supports
+Current source builds embed the complete skill in the CLI. `presmith init my-talk`
+automatically includes `.agents/skills/presmith/` with its references and picker
+metadata. Open the deck in Codex and use `$presmith`; no separate download or
+plugin registration is needed for this project-local skill.
+
+To install the same embedded skill for all your projects:
+
+```sh
+presmith skill install --global
+# After updating the CLI, back up and replace a different global copy:
+presmith skill install --global --force
+```
+
+Both operations work offline. An identical global copy is left untouched. A
+different copy requires `--force`, which backs it up outside the skill discovery
+folder. The global command does not change Codex settings or marketplace plugins.
+These commands require a build containing this feature; the published v0.2.0
+binary predates it. See [skill installation](docs/plugin.md#bundled-skill).
+
+The skill supports
 [seven creation workflows](plugins/presmith/skills/presmith/references/creation-workflows.md):
 briefs, scripts, supplied structures, documents, data, existing decks and demos.
 It infers the workflow from your material and can combine inputs. Example prompts:
@@ -275,7 +299,7 @@ cargo test --locked
 npm run typecheck --prefix editor
 npm run build --prefix editor
 cargo build --locked
-# Requires the existing project-local renderer/Chromium (see setup above):
+# Requires an installed renderer/Chromium (shared or local; see setup above):
 node tests/browser.mjs
 node tests/editor-browser.mjs
 ```
@@ -289,3 +313,13 @@ verification are separate manual checks.
 
 See the [recorded editor verification and visual inspection](docs/editor-verification.md)
 for tested behavior and explicit verification limits.
+
+Shared-cache verification (uses the example’s existing browser and npm downloads offline):
+
+```sh
+cargo build --locked
+node tests/cache.mjs
+```
+
+Shared-cache support is in this source checkout; older published binaries may
+still use per-project installations.

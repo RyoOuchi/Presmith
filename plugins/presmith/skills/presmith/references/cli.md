@@ -1,8 +1,17 @@
 # CLI
 
 `presmith init my-talk`; `cd my-talk`; `presmith setup`; `presmith doctor --json`.
-Setup requires Node 22+/npm and downloads pinned local Chromium. Nothing installs
-on init or doctor. Preview needs only the Rust binary: `presmith dev --open`.
+Setup requires Node 22+/npm and prepares pinned Chromium. Init and doctor do not
+install rendering dependencies. New CLI builds include the complete skill under
+`.agents/skills/presmith/` in initialized decks. Preview needs only the Rust binary:
+`presmith dev --open`.
+
+When explicitly requested, `presmith skill install --global [--force] [--json]`
+installs this executable's embedded skill to `~/.agents/skills/presmith/` offline.
+An identical copy is unchanged; a different copy requires `--force` and is backed
+up outside discovery under `~/.agents/.presmith-skill-backups/`. Do not run it as
+part of ordinary deck authoring. Check `presmith skill --help` before using it with
+an older CLI; the published v0.2.0 binary does not provide this command.
 Use `--port 4173` or `--port 0`. All optional project paths default to `.`.
 
 `presmith check [directory] --slide ID --json`

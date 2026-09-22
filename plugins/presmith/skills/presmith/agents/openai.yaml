@@ -1,0 +1,4 @@
+interface:
+  display_name: "Presmith"
+  short_description: "Create, revise, and export HTML presentations"
+  default_prompt: "Use $presmith to create a presentation from my brief."

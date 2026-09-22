@@ -39,6 +39,15 @@ fn main() {
             collect(Path::new(source), Path::new(source), target, &mut lines);
         }
     }
+    // Keep the complete skill in the executable, including nested references and UI metadata.
+    // Unlike optional project docs, a missing skill is a packaging error.
+    let skill = Path::new("plugins/presmith/skills/presmith");
+    println!("cargo:rerun-if-changed={}", skill.display());
+    assert!(
+        skill.join("SKILL.md").is_file(),
+        "Missing bundled Presmith skill"
+    );
+    collect(skill, skill, ".agents/skills/presmith/", &mut lines);
     for (source, target) in [
         ("library/decksmith.css", "lib/decksmith.css"),
         ("library/decksmith.js", "lib/decksmith.js"),

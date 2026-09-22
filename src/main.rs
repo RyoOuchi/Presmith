@@ -13,15 +13,23 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Commands {
-    /// Create a complete three-slide deck; never overwrites existing content
+    /// Create a three-slide deck with its Codex skill; never overwrites existing content
     Init { directory: PathBuf },
-    /// Explicitly install pinned Node packages and project-local Chromium
+    /// Install the Codex skill embedded in this executable
+    Skill {
+        #[command(subcommand)]
+        command: SkillCommands,
+    },
+    /// Install or reuse pinned Node packages and Chromium in a shared cache
     Setup {
         #[arg(default_value = ".")]
         directory: PathBuf,
         /// Back up and refresh bundled renderer files before installing dependencies
         #[arg(long)]
         upgrade_renderer: bool,
+        /// Install dependencies inside this deck instead of sharing the user cache
+        #[arg(long)]
+        local: bool,
     },
     /// Check configuration and runtime capabilities without installing anything
     Doctor {
@@ -83,6 +91,20 @@ enum Commands {
         json: bool,
     },
 }
+#[derive(Subcommand)]
+enum SkillCommands {
+    /// Install the bundled skill into ~/.agents/skills/presmith without downloads
+    Install {
+        /// Make the skill available across this user's projects
+        #[arg(long, required = true)]
+        global: bool,
+        /// Back up and replace an existing skill that differs from the bundled copy
+        #[arg(long)]
+        force: bool,
+        #[arg(long)]
+        json: bool,
+    },
+}
 #[derive(Clone, ValueEnum)]
 enum Format {
     Html,
@@ -114,13 +136,23 @@ fn main() -> ExitCode {
             false,
             app::init(&directory).map(|()| app::envelope("init")),
         ),
+        Commands::Skill {
+            command:
+                SkillCommands::Install {
+                    global: _,
+                    force,
+                    json,
+                },
+        } => ("skill install", json, app::skill::install_global(force)),
         Commands::Setup {
             directory,
             upgrade_renderer,
+            local,
         } => (
             "setup",
             false,
-            app::setup_with_upgrade(&directory, upgrade_renderer).map(|()| app::envelope("setup")),
+            app::setup_with_options(&directory, upgrade_renderer, local)
+                .map(|()| app::envelope("setup")),
         ),
         Commands::Doctor { directory, json } => {
             let (v, code) = app::doctor(&directory);

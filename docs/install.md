@@ -8,7 +8,9 @@ Use macOS 14 or newer for the full browser workflow, following
 The CLI includes its visual editor and project templates. Rust is required only
 when building from source. Browser checks, PNG rendering, PDF, and PowerPoint
 export require Node.js 22+ with npm. `presmith setup` downloads the pinned renderer
-packages and Chromium into each deck's `tooling/renderer/` directory.
+packages and Chromium. Source builds with shared-cache support reuse one versioned
+installation across matching decks; older published binaries install per deck. See
+[cache locations and migration](project/cli.md#renderer-cache).
 
 ## Install with Homebrew
 
@@ -24,7 +26,7 @@ This adds the [Presmith tap](https://github.com/RyoOuchi/homebrew-tap), verifies
 release archive's SHA-256 checksum, and installs the CLI plus Node.js 24 with npm.
 Presmith automatically uses that tested runtime; your shell's default Node version
 does not need to change. Rust is not required. Continue with [Create your first deck](#create-your-first-deck)
-to install the project-local renderer and Chromium.
+to set up the renderer and Chromium.
 
 To update after a new version is published:
 
@@ -100,11 +102,36 @@ Existing Decksmith projects retain their file format and browser runtime API.
 For an older deck, `presmith setup --upgrade-renderer` refreshes the renderer and
 backs up replaced renderer files without changing authored slides.
 
-## Optional Codex skill
+## Bundled Codex skill
 
-The release also includes `presmith-plugin-v0.2.1.tar.gz`. Extract it, then copy
-the `presmith/skills/presmith` folder into your deck's `.agents/skills/` directory
-to use `$presmith`. Preserve an existing skill folder when updating it.
-The CLI is installed separately. See the repository's
-[plugin instructions](https://github.com/RyoOuchi/Presmith/blob/v0.2.0/docs/plugin.md)
-for the plugin and local-marketplace installation options.
+Current source builds embed the complete Presmith skill, including references and
+skill picker metadata. `presmith init my-talk` writes it into
+`my-talk/.agents/skills/presmith/`. Open that project in Codex and use `$presmith`.
+No extra download, Node installation or Codex CLI is required to write the skill.
+
+For availability across your projects, run once with the updated CLI:
+
+```sh
+presmith skill install --global
+```
+
+This installs into `~/.agents/skills/presmith/`. Repeating the command leaves an
+identical copy untouched. If a different or customized skill already exists, the
+command preserves it and explains how to replace it with a backup:
+
+```sh
+presmith skill install --global --force
+```
+
+Backups live outside skill discovery under `~/.agents/.presmith-skill-backups/`.
+The command prints the installed path and any backup path; `--json` provides a
+structured result. A CLI upgrade does not rewrite previously copied skills.
+Restart Codex if the skill does not appear. Project and global copies can both
+appear in its picker. Use global installation only if you want that extra scope.
+
+**Published v0.2.0:** that binary predates embedded skills and `skill install`.
+Build the current checkout with `cargo install --path . --locked` to use these
+features, or use its separate `presmith-plugin-v0.2.1.tar.gz` release asset. Extract
+it and copy `presmith/skills/presmith` into the deck's `.agents/skills/` directory,
+preserving any existing customized folder. The separate plugin remains available
+for marketplace installation. See [plugin instructions](plugin.md).

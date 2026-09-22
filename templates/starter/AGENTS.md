@@ -1,7 +1,8 @@
 # Working on this deck
 
 Read deck.json and the relevant slide fragments before editing. Follow docs/authoring.md
-and docs/runtime.md. Use the Presmith skill if installed; the CLI never calls a model.
+and docs/runtime.md. Use the bundled .agents/skills/presmith/SKILL.md when creating
+or revising slides; the CLI never calls a model.
 Draft a short narrative outline before creating slides. Preserve facts and label illustrative data.
 Keep stable slide IDs and data-element-id attributes. For a local revision, modify only the
 requested slide and selectors scoped to [data-slide-id="…"]. Do not change the global theme.

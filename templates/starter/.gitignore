@@ -4,3 +4,5 @@ node_modules/
 .browsers/
 .npm-cache/
 .DS_Store
+
+**/.presmith-setup*

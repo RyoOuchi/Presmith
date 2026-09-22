@@ -2,7 +2,9 @@ pub mod assemble;
 pub mod editor;
 pub mod manifest;
 pub mod process;
+mod renderer_cache;
 pub mod server;
+pub mod skill;
 use anyhow::{Context, Result, bail};
 use manifest::Problems;
 use serde_json::{Value, json};
@@ -31,7 +33,7 @@ pub fn init(directory: &Path) -> Result<()> {
     }
     fs::create_dir_all(directory.join("assets"))?;
     eprintln!(
-        "Created {}. No dependencies installed.\nNext steps:\n  cd '{}'\n  presmith setup\n  presmith doctor\n  presmith dev --open\n  presmith check\n  presmith render\n  presmith export --format html\n  presmith export --format pdf\n  presmith export --format pptx",
+        "Created {} with the Codex skill in .agents/skills/presmith/. No rendering dependencies installed.\nOpen this deck in Codex and use $presmith.\nNext steps:\n  cd '{}'\n  presmith setup\n  presmith doctor\n  presmith dev --open\n  presmith check\n  presmith render\n  presmith export --format html\n  presmith export --format pdf\n  presmith export --format pptx",
         directory.display(),
         directory.display()
     );
@@ -101,6 +103,10 @@ pub fn upgrade_renderer(root: &Path) -> Result<PathBuf> {
     Ok(backup)
 }
 pub fn setup_with_upgrade(directory: &Path, upgrade: bool) -> Result<()> {
+    setup_with_options(directory, upgrade, false)
+}
+
+pub fn setup_with_options(directory: &Path, upgrade: bool, local: bool) -> Result<()> {
     let (root, _) = manifest::load(directory)?;
     if upgrade {
         let backup = upgrade_renderer(&root)?;
@@ -109,38 +115,7 @@ pub fn setup_with_upgrade(directory: &Path, upgrade: bool) -> Result<()> {
             backup.display()
         );
     }
-    process::run(
-        Command::new("node").args([
-            "-e",
-            "if(Number(process.versions.node.split('.')[0])<22)process.exit(1)",
-        ]),
-        None,
-        Duration::from_secs(15),
-    )
-    .context("Node.js 22+ is required. Install Node.js with npm, then rerun presmith setup")?;
-    let dir = root.join("tooling/renderer");
-    if !dir.join("package-lock.json").is_file() {
-        bail!(
-            "Missing tooling/renderer/package-lock.json; restore renderer files from a fresh presmith init project"
-        );
-    }
-    eprintln!("Installing pinned renderer dependencies locally…");
-    let output = process::run(
-        Command::new(if cfg!(windows) { "npm.cmd" } else { "npm" })
-            .args(["ci", "--no-audit", "--no-fund", "--ignore-scripts"])
-            .env("npm_config_cache", dir.join(".npm-cache"))
-            .current_dir(&dir),
-        None,
-        Duration::from_secs(600),
-    )
-    .context("npm ci failed. Check npm and network access, then rerun presmith setup")?;
-    eprintln!("{output}Installing project-local Chromium…");
-    let output = process::run(Command::new("node").args(["node_modules/playwright/cli.js", "install", "chromium"]).env("PLAYWRIGHT_BROWSERS_PATH", dir.join(".browsers")).current_dir(&dir), None, Duration::from_secs(600)).context("Chromium installation failed. Check network/disk space. On Linux install Playwright system libraries; see README")?;
-    eprintln!("{output}");
-    let probe = process::helper(&root, &json!({"action":"probe"}))?;
-    if probe["success"] != true {
-        bail!("Chromium could not launch: {}", probe["error"]);
-    }
+    let probe = renderer_cache::setup(&root, local)?;
     if probe["capabilities"]["pptx_export"] == true {
         eprintln!("Ready: preview, checks, screenshots, HTML, PDF and PPTX export.");
     } else {

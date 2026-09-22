@@ -40,6 +40,9 @@ fn compiled_binary_initializes_outside_checkout_with_spaces() {
         "AGENTS.md",
         "README.md",
         "docs/runtime.md",
+        ".agents/skills/presmith/SKILL.md",
+        ".agents/skills/presmith/references/creation-workflows.md",
+        ".agents/skills/presmith/agents/openai.yaml",
     ] {
         assert!(
             project.join(file).is_file(),
@@ -234,7 +237,8 @@ fn generated_html_excludes_project_secrets_and_tooling() {
     assert!(!files.keys().any(|k| k.contains("tooling")
         || k.contains("secret")
         || k.contains(".env")
-        || k.starts_with("slides/")));
+        || k.starts_with("slides/")
+        || k.starts_with(".agents/")));
     assert!(files.contains_key("index.html"));
 }
 #[test]

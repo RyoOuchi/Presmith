@@ -5,6 +5,45 @@ The repository contains an instruction-only plugin at `plugins/presmith/` with
 hooks, apps, MCP, model API credentials or a CLI binary. Install/build the Rust CLI
 separately and make `presmith` available in the coding agent's PATH.
 
+## Bundled skill
+
+Current source builds embed the complete `skills/presmith/` folder in the Presmith
+executable, including references and `agents/openai.yaml`. Every new
+`presmith init DIRECTORY` project contains it at `.agents/skills/presmith/`.
+Codex discovers that project-local folder when working in the deck. Invoke
+`$presmith`; restart Codex if discovery has not refreshed. This needs no separate
+plugin installation, Codex CLI, renderer setup or network access.
+
+For a user-wide copy, run:
+
+```sh
+presmith skill install --global
+presmith skill install --global --json
+```
+
+The destination is `$HOME/.agents/skills/presmith` on Unix, or
+`%USERPROFILE%/.agents/skills/presmith` on Windows. Only this standalone skill is
+installed; Codex settings, plugins and marketplace registrations are unchanged.
+An identical copy is a successful no-op. To replace a different copy:
+
+```sh
+presmith skill install --global --force
+```
+
+The entire previous folder, including custom files, is saved under
+`~/.agents/.presmith-skill-backups/install-*/presmith/` before replacement. Backups
+are outside `.agents/skills/` so they do not appear as duplicate skills. A failed
+replacement attempts to restore the previous directory; if restoration fails,
+the error identifies the saved copy to restore manually. Symlink destinations and
+symlinked `.agents` or `skills` directories are refused, even with `--force`.
+Concurrent installers cannot replace the same skill simultaneously.
+
+Existing project-local copies are unchanged when the CLI or global skill updates.
+Codex can list project, user and plugin copies with the same name separately; it
+does not merge them. Choose the installation scope you need. The published v0.2.0
+binary does not contain these new commands; use a current source build or the
+manual copy instructions below with older binaries.
+
 ## Local plugin installation (opt-in)
 
 Current official packaging guidance supports a portable root `plugin.json` and a
@@ -31,15 +70,30 @@ install there. Start a new task after installation; if discovery is stale, resta
 the desktop app. Reinstall after updating plugin contents; update the version when
 needed to invalidate a cached copy.
 
+### Finding Presmith in Codex
+
+The plugin's display name is **Presmith**, and the skill is invoked as `$presmith`.
+The skill includes `agents/openai.yaml` so the skill picker also displays Presmith.
+Start a new task after installation; restart Codex if the picker is still stale.
+
+An installation named **Decksmith** is an older package. Renaming this checkout or
+editing its skill does not update the separately installed plugin. Register the
+Presmith package in the marketplace you use, install `presmith@MARKETPLACE`, and
+then remove the old `decksmith@MARKETPLACE` installation. For a personal marketplace,
+use the plugin-creator scaffold and update helpers to register and refresh the
+local package. Check `codex plugin list --marketplace MARKETPLACE --json` to confirm
+the installed name before trying `$presmith` in a new task.
+
 **Verification boundary:** command syntax was checked against the installed Codex
-CLI's `plugin add --help` and `plugin marketplace add --help`, and the instructions
-were checked against official documentation. No marketplace was registered and no
-plugin was installed into the user's account/configuration. Desktop discovery and
-activation are therefore not claimed as tested.
+CLI's help and official documentation. Local installation and enabled status can
+be verified with `codex plugin list --marketplace MARKETPLACE --json`. Check the
+desktop skill picker in a new task separately; CLI installation alone does not
+verify that an already-open task has refreshed its skills.
 
-## Standalone, project-local skill (opt-in)
+## Existing decks and older binaries
 
-From the target deck's directory (replace the source path with this checkout):
+New decks already contain the skill. To add it to an older deck without
+reinitializing that deck, copy from the checkout (replace the source path):
 
 ```sh
 mkdir -p .agents/skills
@@ -50,7 +104,8 @@ Do not overwrite an existing skill directory; update its contents deliberately.
 Codex supports `.agents/skills/` discovery and symlinked skill folders. Copying keeps
 all references inside the installed skill. Invoke `$presmith` in a task opened in
 the deck project. No personal marketplace or global configuration change is needed.
-This standalone copy/discovery flow is documented, not installed automatically.
+The copy keeps the skill scoped to this project. Global installation above is
+an alternative when you want the same skill available across existing projects.
 
 ## Validation evidence
 
