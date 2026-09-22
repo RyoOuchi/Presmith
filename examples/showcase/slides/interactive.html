@@ -1,0 +1,14 @@
+<p class="eyebrow" data-element-id="eyebrow">07 / A live demonstration</p>
+<h2 data-element-id="headline">Live controls. Defined export state.</h2>
+<p class="dek" data-element-id="subtitle">Try the slider. Captures and PDF reset this specimen to 72px.</p>
+<div class="lab-layout">
+  <div><p class="label" data-element-id="specimen-label">TYPE LAB / INTERACTIVE HTML</p><div class="type-specimen" data-element-id="specimen"><p class="specimen-text" data-element-id="specimen-text">Readable<br>ideas</p></div><label class="control-label" for="headline-scale" data-element-id="control-label">Headline size <output id="headline-size" for="headline-scale">72px</output></label><input id="headline-scale" data-element-id="slider" type="range" min="48" max="88" value="72" step="1" aria-label="Headline size in pixels"></div>
+  <div><p class="label" data-element-id="hook-label">scripts/custom.js / EXCERPT</p><pre class="hook-code" data-element-id="hook-code"><code>Decksmith.register('interactive', {
+  init(slide) {
+    wireSlider(slide);
+  },
+  export(slide) {
+    setSize(slide, 72);
+  }
+});</code></pre><p class="hook-caption" data-element-id="hook-description">Repeatable hooks set a known state<br>for every capture and PDF.</p></div>
+</div>

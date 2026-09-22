@@ -43,6 +43,23 @@ pub fn assemble(root: &Path, m: &Manifest, dev: bool) -> Result<Files> {
         }
         walk(root, &path, &mut files)?;
     }
+    let mut fragments = Files::new();
+    for slide in &m.slides {
+        fragments.insert(
+            slide.source.clone(),
+            fs::read(safe_file(root, &slide.source)?)?,
+        );
+    }
+    assemble_sources(m, files, &fragments, dev)
+}
+
+/// Shared assembly for disk projects and validated editor snapshots.
+pub fn assemble_sources(
+    m: &Manifest,
+    mut files: Files,
+    fragments: &Files,
+    dev: bool,
+) -> Result<Files> {
     let data = serde_json::to_string(m)?
         .replace('<', "\\u003c")
         .replace('>', "\\u003e")
@@ -65,8 +82,11 @@ pub fn assemble(root: &Path, m: &Manifest, dev: bool) -> Result<Files> {
         escape(&m.title)
     );
     for (index, s) in m.slides.iter().enumerate() {
-        let fragment = fs::read_to_string(safe_file(root, &s.source)?)
-            .with_context(|| format!("Read {}", s.source))?;
+        let fragment = std::str::from_utf8(
+            fragments
+                .get(&s.source)
+                .with_context(|| format!("Missing fragment {}", s.source))?,
+        )?;
         html += &format!(
             "<section class=\"deck-slide\" id=\"slide-{}\" data-slide-id=\"{}\" data-source=\"{}\" aria-label=\"{}\" aria-roledescription=\"slide\" hidden inert>\n{}\n<footer class=\"slide-footer\"><span>{}</span><span>{:02} / {:02}</span></footer></section>\n",
             escape(&s.id),

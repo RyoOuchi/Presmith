@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use decksmith::{self as app, process::INTERRUPTED};
+use presmith::{self as app, process::INTERRUPTED};
 use std::{path::PathBuf, process::ExitCode, sync::atomic::Ordering};
 #[derive(Parser)]
 #[command(
@@ -19,6 +19,9 @@ enum Commands {
     Setup {
         #[arg(default_value = ".")]
         directory: PathBuf,
+        /// Back up and refresh bundled renderer files before installing dependencies
+        #[arg(long)]
+        upgrade_renderer: bool,
     },
     /// Check configuration and runtime capabilities without installing anything
     Doctor {
@@ -35,6 +38,18 @@ enum Commands {
         port: u16,
         #[arg(long)]
         open: bool,
+    },
+    /// Open the visual editor with explicit, conflict-checked source saves
+    Edit {
+        #[arg(default_value = ".")]
+        directory: PathBuf,
+        #[arg(long, default_value_t = 4174)]
+        port: u16,
+        #[arg(long)]
+        open: bool,
+        /// Roll back an interrupted editor save before opening (close other editors first)
+        #[arg(long)]
+        recover: bool,
     },
     /// Capture logical-size slide PNGs and a labeled contact sheet
     Render {
@@ -72,6 +87,7 @@ enum Commands {
 enum Format {
     Html,
     Pdf,
+    Pptx,
 }
 fn main() -> ExitCode {
     let cli = match Cli::try_parse() {
@@ -98,10 +114,13 @@ fn main() -> ExitCode {
             false,
             app::init(&directory).map(|()| app::envelope("init")),
         ),
-        Commands::Setup { directory } => (
+        Commands::Setup {
+            directory,
+            upgrade_renderer,
+        } => (
             "setup",
             false,
-            app::setup(&directory).map(|()| app::envelope("setup")),
+            app::setup_with_upgrade(&directory, upgrade_renderer).map(|()| app::envelope("setup")),
         ),
         Commands::Doctor { directory, json } => {
             let (v, code) = app::doctor(&directory);
@@ -116,6 +135,16 @@ fn main() -> ExitCode {
             "dev",
             false,
             app::dev(&directory, port, open).map(|()| app::envelope("dev")),
+        ),
+        Commands::Edit {
+            directory,
+            port,
+            open,
+            recover,
+        } => (
+            "edit",
+            false,
+            app::editor::edit(&directory, port, open, recover).map(|()| app::envelope("edit")),
         ),
         Commands::Render {
             directory,
@@ -152,6 +181,7 @@ fn main() -> ExitCode {
                 Some(match format {
                     Format::Html => "html",
                     Format::Pdf => "pdf",
+                    Format::Pptx => "pptx",
                 }),
             ),
         ),
@@ -203,6 +233,6 @@ fn emit(v: &serde_json::Value, json: bool) {
         eprintln!("{error}");
     }
     if v["success"] == true {
-        eprintln!("{}: OK", v["command"].as_str().unwrap_or("decksmith"));
+        eprintln!("{}: OK", v["command"].as_str().unwrap_or("presmith"));
     }
 }

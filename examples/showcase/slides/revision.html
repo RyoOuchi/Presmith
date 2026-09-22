@@ -1,0 +1,9 @@
+<p class="eyebrow" data-element-id="eyebrow">05 / Focused edits</p>
+<h2 data-element-id="headline">A revision can stay on one slide</h2>
+<div class="revision-layout">
+  <div><p class="big-number" data-element-id="scope-number">01</p><p class="number-caption" data-element-id="scope-label">slide in scope</p><p class="small muted" data-element-id="scope-detail">Stable IDs<br>Scoped CSS<br>Diff review</p></div>
+  <div><p class="revision-prompt" data-element-id="prompt">“On slide workflow, shorten the headline.<br>Keep the evidence and every other slide.”</p><p class="label" data-element-id="diff-label">ILLUSTRATIVE REVISION</p><pre class="diff" data-element-id="diff"><code><span class="removed">− A better way to create a presentation</span>
+<span class="added">+ A clearer workflow</span></code></pre><pre class="revision-commands" data-element-id="commands"><code>presmith check --slide workflow --json
+presmith render --slide workflow --json</code></pre><p class="small muted" data-element-id="review">Open the revised PNG and review the source diff.</p></div>
+</div>
+<p class="bottom-note" data-element-id="scope-rule">Shared CSS or runtime changes trigger a check and visual review of the whole deck.</p>

@@ -96,7 +96,7 @@ pub fn helper(root: &Path, input: &Value) -> Result<Value> {
     let dir = root.join("tooling/renderer");
     if !dir.join("node_modules/playwright/package.json").is_file() {
         bail!(
-            "Renderer dependencies missing. Run: decksmith setup '{}' (requires Node.js 22+ and npm)",
+            "Renderer dependencies missing. Run: presmith setup '{}' (requires Node.js 22+ and npm)",
             root.display()
         );
     }

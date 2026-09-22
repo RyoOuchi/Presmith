@@ -2,8 +2,7 @@
 
 `deck.json` contains `schema_version: 1`, a nonempty `title`, integer `width` and
 `height` (default 1280 × 720), ordered `slides`, and explicit `styles` / `scripts`
-arrays. Each slide has `id`, `source`, and optional `title` and `notes`. Unknown
-fields are rejected to expose typos. Limits: 1–200 slides, width 320–4096, height
+arrays. Each slide has `id`, `source`, and optional `title` and `notes`. Additional metadata fields are preserved by assembly and the visual editor. Limits: 1–200 slides, width 320–4096, height
 240–4096. IDs contain 1–80 ASCII letters, digits, `_` or `-` and are unique ignoring ASCII case, so filenames remain portable.
 
 ```json

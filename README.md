@@ -1,14 +1,19 @@
-# Decksmith
+# Presmith
 
 A working local prototype for creating presentations with a coding agent. Write one
 HTML fragment per slide, preview immediately, get browser diagnostics, inspect PNGs,
-and export static HTML or PDF. Your project stays readable and versionable.
+and export HTML, PDF or editable PowerPoint files. Your project stays readable and versionable.
 
 **Initialize → ask Codex → preview → check → render and inspect → revise → export.**
 
-Decksmith and `decksmith` are provisional local development names. Nothing is
+Presmith and `presmith` are provisional local development names. Nothing is
 published and no name availability is claimed. There is no model API integration,
-chat UI, account, cloud service, deployment feature, MCP server or PowerPoint format.
+chat UI, account, cloud service, deployment feature or MCP server.
+
+The CLI is now named `presmith` (formerly `decksmith`). Existing decks remain
+compatible: `deck.json`, `lib/decksmith.css`, `lib/decksmith.js`, the
+`window.Decksmith` browser API, and `.decksmith/` output paths retain their existing
+names. Use `presmith` for CLI commands and `$presmith` for the bundled Codex skill.
 
 ## Quick start
 
@@ -21,24 +26,27 @@ cargo build --release --locked
 # Optional local CLI installation, explicitly initiated by you:
 cargo install --path . --locked
 
-decksmith init my-talk
+presmith init my-talk
 cd my-talk
-decksmith setup
-decksmith doctor
-decksmith dev --open
+presmith setup
+presmith doctor
+presmith dev --open
+# Or edit content, appearance, slides and notes visually:
+presmith edit --open
 ```
 
 Keep preview running; in another terminal inside my-talk:
 
 ```sh
-decksmith check --json
-decksmith render
+presmith check --json
+presmith render
 # Open .decksmith/render/contact-sheet.png and individual slide PNGs.
-decksmith export --format html
-decksmith export --format pdf
+presmith export --format html
+presmith export --format pdf
+presmith export --format pptx
 ```
 
-Without installing the binary, use `/absolute/path/to/Desksmith/target/release/decksmith`
+Without installing the binary, use `/absolute/path/to/Desksmith/target/release/presmith`
 in these commands. Init embeds every scaffold/library/helper asset: the compiled
 binary works outside this checkout. Init and doctor never silently install packages.
 Setup is explicit and rerunnable. On a dependency failure, follow doctor's guidance;
@@ -53,6 +61,34 @@ python3 -m http.server 8080 --directory dist/html
 Open localhost:8080. **Generated presentations need neither Rust nor Node to be
 viewed through an ordinary static server.** file:// is not a supported viewing mode.
 
+## Edit in PowerPoint or Google Slides
+
+```sh
+# For a deck initialized with an older Presmith version:
+presmith setup my-talk --upgrade-renderer
+presmith export my-talk --format pptx --json
+```
+
+Open `my-talk/dist/deck.pptx` in PowerPoint, or upload it to Google Drive and choose
+**Open with → Google Slides**. Text exports as editable line-sized text boxes;
+fills, borders, rectangles, ellipses and simple SVG geometry remain separate shapes.
+Images remain replaceable pictures. Slide order, canvas dimensions and speaker
+notes carry over. Each JSON artifact includes per-slide `editability` counts.
+
+Complex SVG, controls, canvas, transforms and unsupported CSS effects become static
+pictures and produce `pptx.rasterized` warnings. `data-pptx="raster"` can explicitly
+request a picture for a complex element. Fonts may substitute and text metrics can
+shift between applications. Review the imported deck before presenting. Tables
+export as editable text and borders, not semantic Office tables; HTML chart shapes
+do not become data-backed Office charts. Interactive state follows export hooks.
+Changes in PowerPoint/Slides do not sync back to HTML. Notes are included in PPTX.
+
+`setup --upgrade-renderer` backs up replaced renderer files under
+`.decksmith/renderer-backups/`, updates the bundled renderer, and installs its pinned
+dependencies. It preserves authored slides, styles, scripts and custom extra tooling
+files. Without this flag, setup retains the existing renderer. Doctor reports
+`pptx_export` separately so older decks do not claim support.
+
 ## Responsibilities and repository layout
 
 Rust handles arguments, manifest validation, project scaffolding, HTML assembly,
@@ -66,8 +102,9 @@ Codex supplies narrative and editing judgment through the plugin's skill.
 | `src/` | Single Rust CLI/library crate |
 | `library/` | Canonical vanilla CSS/JS and Ink/Paper themes |
 | `templates/starter/` | Authored three-slide scaffold and short agent instructions |
+| `editor/` | React/TypeScript visual editor, pinned build tools and embedded production assets |
 | `renderer/` | Node helper; exact package versions and package-lock.json |
-| `plugins/decksmith/` | Portable Codex plugin, compatibility manifest, skill/references |
+| `plugins/presmith/` | Portable Codex plugin, compatibility manifest, skill/references |
 | `examples/product/` | Eight authored slides explaining the product |
 | `docs/project/` | Project documentation embedded by init |
 | `tests/` | CLI/browser integration checks and broken fixtures |
@@ -77,20 +114,20 @@ Codex supplies narrative and editing judgment through the plugin's skill.
 materialization script copies shared assets from those canonical sources; the copies
 are ignored by Git. Edit canonical library/helper assets, then rerun the script.
 Cargo.lock and renderer/package-lock.json are versioned. Cargo publishing and npm
-publishing are disabled by the package manifests. There is no frontend framework,
-bundler or custom slide language.
+publishing are disabled by the package manifests. The visual editor uses React and TypeScript with an esbuild bundle; slides remain
+ordinary HTML/CSS, with no framework project format.
 
 ## The example
 
 ```sh
 cargo build --locked
 python3 scripts/prepare-example.py
-./target/debug/decksmith setup examples/product
-./target/debug/decksmith dev examples/product --open
-./target/debug/decksmith check examples/product --json
-./target/debug/decksmith render examples/product
-./target/debug/decksmith export examples/product --format html
-./target/debug/decksmith export examples/product --format pdf
+./target/debug/presmith setup examples/product
+./target/debug/presmith dev examples/product --open
+./target/debug/presmith check examples/product --json
+./target/debug/presmith render examples/product
+./target/debug/presmith export examples/product --format html
+./target/debug/presmith export examples/product --format pdf
 ```
 
 Source: examples/product/deck.json and slides/. Overview:
@@ -105,9 +142,12 @@ illustrative; export resets the slider to 60%.
 See [verified local installation instructions and validation boundaries](docs/plugin.md).
 No global Codex settings or personal marketplace were changed by this implementation.
 Use the repository-local plugin or copy its self-contained skill into a deck's
-`.agents/skills/decksmith/`. Install the CLI separately. Three realistic prompts:
+`.agents/skills/presmith/`. Install the CLI separately. The skill supports
+[seven creation workflows](plugins/presmith/skills/presmith/references/creation-workflows.md):
+briefs, scripts, supplied structures, documents, data, existing decks and demos.
+It infers the workflow from your material and can combine inputs. Example prompts:
 
-1. “Use $decksmith to create an eight-slide engineering proposal for replacing our
+1. “Use $presmith to create an eight-slide engineering proposal for replacing our
    nightly batch pipeline. Audience: backend leads. Use these incident notes as facts,
    compare two options, and end with the decision needed. Draft the outline first.”
 2. “On slide solution, shorten the headline to seven words and make the diagram
@@ -116,6 +156,10 @@ Use the repository-local plugin or copy its self-contained skill into a deck's
 3. “Prepare this deck for a ten-minute customer demo. Keep all supplied metrics and
    citations. Check the whole deck, open the rendered images, repair up to three
    passes, then export HTML and PDF and report unresolved issues.”
+4. “Use $presmith to turn this keynote script into 12 slides. Keep my spoken wording
+   in speaker notes, follow the existing sequence, and use minimal text on screen.”
+5. “Use $presmith to build exactly the six slides in this outline. Keep the titles
+   and order, use this report for evidence, and do not add a cover or closing slide.”
 
 The skill requires actual image inspection when available, localized revisions,
 diff review, and an explicit bounded repair loop. It never equates generating a
@@ -174,8 +218,64 @@ pinning; universal pixel identity is not promised.
 HTML export is verified with external network requests blocked. It includes only
 presentation resources, not development dependencies. PDF is static, preserves
 selectable browser text where possible, and checks exactly one page per slide.
-Output directories with the Decksmith ownership marker are replaced on successful
+Output directories with the Presmith ownership marker are replaced on successful
 reruns; keep source out of them. Artifact installation is not atomic across filesystems.
 Browser checks require local process/network permissions even though they bind only
 loopback. macOS is exercised here; Linux/Windows portability is not fully verified.
 The CLI is designed for trusted local project source, not hostile web content.
+
+## Visual editor
+
+`presmith edit [DIRECTORY] --open` launches the local source editor. Select slides
+and elements, edit text/typography/colors/spacing/borders, resize supported blocks,
+move supported positioned elements, replace images, edit notes, reorder slides,
+and use undo/redo. Explicit Save updates HTML, `deck.json`, and scoped overrides in
+`styles/editor.css`. Reset buttons remove individual overrides. Save retains undo
+history. External changes trigger a conflict with pending-edit download and an
+explicit reload/discard action. Opening a deck does not change its source files.
+
+See [supported operations, source rules, save/recovery and limitations](docs/project/editor.md).
+Ordinary preview and exports have no editor mutation API. No plugin installation,
+account or cloud service is involved.
+
+### Frontend development and production build
+
+The production assets in `editor/build/` are versioned and embedded by Rust. A
+normal `cargo build --locked` therefore needs no frontend tooling and the resulting
+binary serves the editor without a separate development server. After editing
+frontend source, regenerate and commit the bundle:
+
+```sh
+npm ci --ignore-scripts --prefix editor
+npm run typecheck --prefix editor
+npm run build --prefix editor
+cargo build --locked
+./target/debug/presmith edit examples/product --open
+```
+
+`npm run dev --prefix editor` watches and rebuilds both frontend entry points.
+Rebuild/restart the Rust editor after a bundle change; generated assets are embedded
+at compile time. This avoids a frontend dev server becoming a runtime dependency.
+All new dependencies are pinned, and `editor/package-lock.json` is committed.
+
+### Editor verification
+
+```sh
+cargo test --locked
+npm run typecheck --prefix editor
+npm run build --prefix editor
+cargo build --locked
+# Requires the existing project-local renderer/Chromium (see setup above):
+node tests/browser.mjs
+node tests/editor-browser.mjs
+```
+
+Editor integration tests use real Chromium, persist and reopen source edits, check
+computed styles/geometry and write boundaries, exercise conflicts/history/assets,
+and export edited decks through HTML/PNG/PDF/PPTX. Screenshots and test results are
+written to `verification/editor/` for actual visual inspection. Synthetic browser
+composition events cover input handling; operating-system IME and Office import
+verification are separate manual checks.
+
+See the [recorded editor verification and visual inspection](docs/editor-verification.md)
+for tested behavior and explicit verification limits.

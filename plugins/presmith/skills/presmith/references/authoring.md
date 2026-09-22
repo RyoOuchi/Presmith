@@ -13,7 +13,7 @@ resolve from the assembled project root; avoid leading slashes and remote URLs.
 Only assets/, lib/, styles/, scripts/ are public. No secrets there. Store notes in
 the manifest; exported HTML includes them in the embedded runtime manifest.
 
-Register custom script hooks synchronously after Decksmith loads:
+Register custom script hooks synchronously after Presmith loads:
 `Decksmith.register('scenario', {async init(slide) {}, async export(slide) {}})`.
 Initialization runs once per active slide. Await necessary async work. Export hooks
 must reset interactive state deterministically and be repeatable. Stop timers.

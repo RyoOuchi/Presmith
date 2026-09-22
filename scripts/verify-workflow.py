@@ -11,7 +11,7 @@ import time
 import urllib.request
 
 repo = Path(__file__).resolve().parents[1]
-binary = repo / 'target/debug/decksmith'
+binary = repo / 'target/debug/presmith'
 project = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else repo / 'verification/workflow talk'
 records = []
 
@@ -43,7 +43,7 @@ try:
     with urllib.request.urlopen(url, timeout=5) as response:
         html = response.read().decode()
         assert 'data-slide-id="intro"' in html
-    records.append({'command':['decksmith','dev',str(project),'--port','0'],'url':url,'http_status':200})
+    records.append({'command':['presmith','dev',str(project),'--port','0'],'url':url,'http_status':200})
 finally:
     preview.send_signal(signal.SIGTERM)
     preview.wait(timeout=10)

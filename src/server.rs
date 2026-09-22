@@ -22,6 +22,8 @@ pub struct State {
     pub revision: u64,
     pub error: Option<String>,
     pub dev: bool,
+    /// Only the editor presentation origin allows asset reads by its opaque sandbox.
+    pub editor_assets: bool,
 }
 pub struct LocalServer {
     pub url: String,
@@ -74,12 +76,16 @@ async fn respond(AppState(shared): AppState<Arc<RwLock<State>>>, request: Reques
     } else {
         (404, b"Not found".to_vec(), "text/plain")
     };
-    Response::builder()
+    let mut response = Response::builder()
         .status(status)
         .header("Content-Type", content_type)
         .header("Content-Length", data.len())
         .header("Cache-Control", "no-store")
-        .header("X-Content-Type-Options", "nosniff")
+        .header("X-Content-Type-Options", "nosniff");
+    if state.editor_assets {
+        response = response.header("Access-Control-Allow-Origin", "null");
+    }
+    response
         .body(Body::from(if request.method() == "HEAD" {
             Vec::new()
         } else {

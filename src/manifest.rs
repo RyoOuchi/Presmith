@@ -8,8 +8,9 @@ use std::{
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Manifest {
+    #[serde(flatten)]
+    pub extra: std::collections::BTreeMap<String, Value>,
     pub schema_version: u32,
     pub title: String,
     pub width: u32,
@@ -19,8 +20,9 @@ pub struct Manifest {
     pub scripts: Vec<String>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Slide {
+    #[serde(flatten)]
+    pub extra: std::collections::BTreeMap<String, Value>,
     pub id: String,
     pub source: String,
     #[serde(default)]
@@ -92,7 +94,7 @@ pub fn safe_file(root: &Path, value: &str) -> Result<PathBuf> {
 pub fn load(directory: &Path) -> Result<(PathBuf, Manifest)> {
     let root = directory
         .canonicalize()
-        .context("Project directory does not exist; run decksmith init <directory>")?;
+        .context("Project directory does not exist; run presmith init <directory>")?;
     let raw = fs::read_to_string(root.join("deck.json")).map_err(|e| {
         Problems(vec![Finding::error(
             "manifest.invalid",

@@ -5,20 +5,21 @@ import {spawn, execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {once} from 'node:events';
 import {createServer} from 'node:net';
-import {mkdtemp, mkdir, readFile, writeFile, readdir, symlink, rm, cp} from 'node:fs/promises';
+import {mkdtemp, mkdir, readFile, writeFile, readdir, symlink, rm, cp, realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const binary = path.resolve(process.env.DECKSMITH_BIN || path.join(repo,'target/debug/decksmith'));
+const binary = path.resolve(process.env.PRESMITH_BIN || path.join(repo,'target/debug/presmith'));
 const runtimeProject = path.resolve(process.argv[2] || path.join(repo,'examples/product'));
 const runtime = path.join(runtimeProject,'tooling/renderer');
 process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(runtime,'.browsers');
 const require = createRequire(path.join(runtime,'package.json'));
 const {chromium} = require('playwright');
 const {PDFDocument} = require('pdf-lib');
-const temp = await mkdtemp(path.join(tmpdir(),'decksmith integration '));
+const JSZip = require('jszip');
+const temp = await mkdtemp(path.join(tmpdir(),'presmith integration '));
 const project = path.join(temp,'a talk with spaces');
 const results = [], children = new Set(), observedPids = new Set();
 let browser;
@@ -56,7 +57,7 @@ try {
     for(const name of ['node_modules','.browsers']) await symlink(path.join(runtime,name),path.join(project,'tooling/renderer',name),'dir');
   });
   await test('doctor launches Chromium and returns JSON capabilities',async()=>{
-    const r=await run(['doctor',project,'--json']);assert.equal(r.success,true);assert.equal(r.capabilities.pdf_export,true);
+    const r=await run(['doctor',project,'--json']);assert.equal(r.success,true);assert.equal(r.capabilities.pdf_export,true);assert.equal(r.capabilities.pptx_export,true);
   });
   browser=await chromium.launch({headless:true});
   await test('preview: navigation, scaling, isolation, reload, error recovery and shutdown',async()=>{
@@ -104,6 +105,37 @@ try {
     const result=await run(['export',project,'--format','pdf','--out',path.join(temp,'a talk.pdf'),'--json']);
     const pdf=await PDFDocument.load(await readFile(result.artifacts[0].path));assert.equal(pdf.getPageCount(),3);
     for(const page of pdf.getPages()) {const size=page.getSize();assert.ok(Math.abs(size.width-960)<1);assert.ok(Math.abs(size.height-540)<1);}
+  });
+  await test('PPTX: native text, shapes, images, SVG primitives, notes, order and explicit fallbacks',async()=>{
+    const source=path.join(project,'slides/intro.html'), script=path.join(project,'scripts/custom.js');
+    const before=await readFile(source), js=await readFile(script), original=await json();
+    await cp(path.join(repo,'tests/fixtures/pptx/slide.html'),source);
+    await writeFile(script,"Decksmith.register('intro',{async export(){await new Promise(r=>setTimeout(r,30)); document.getElementById('pptx-live').textContent='Ready 60%';}});");
+    const m=await json();m.slides[0].notes='Speaker notes & source attribution';await manifest(m);
+    const output=path.join(temp,'editable talk.pptx');
+    const result=await run(['export',project,'--format','pptx','--out',output,'--json']);
+    assert.equal(result.artifacts[0].path,await realpath(output));assert.equal(result.artifacts[0].slides,3);
+    const stats=result.artifacts[0].editability[0];
+    assert.ok(stats.text_boxes>5);assert.ok(stats.shapes>2);assert.equal(stats.images,3);assert.equal(stats.rasterized_elements,2);
+    assert.ok(result.findings.some(f=>f.rule_id==='pptx.rasterized'&&f.element_id==='canvas-fallback'));
+    assert.ok(result.findings.some(f=>f.rule_id==='pptx.rasterized'&&f.element_id==='explicit-fallback'));
+    const zip=await JSZip.loadAsync(await readFile(output),{checkCRC32:true});
+    assert.equal(Object.keys(zip.files).filter(p=>/^ppt\/slides\/slide\d+\.xml$/.test(p)).length,3);
+    const xml=await zip.file('ppt/slides/slide1.xml').async('string');
+    for (const text of ['Editable &amp; portable','Normal','bold','accent','Ready 60%','SVG label']) assert.ok(xml.includes(text),text);
+    assert.ok(!xml.includes('HIDDEN CONTENT'));assert.ok(!xml.includes('INVISIBLE CONTENT'));assert.ok(!xml.includes('Before hook'));
+    assert.ok(xml.includes('intro/native-shape/'));assert.ok(xml.includes('<p:pic>'));assert.ok(xml.includes('b="1"'));
+    assert.ok(xml.includes('typeface="Arial"'));assert.ok(!xml.includes('PresmithDefinitelyMissingFont'));
+    assert.ok(!xml.includes('typeface="Helvetica Neue"'));
+    const notes=await zip.file('ppt/notesSlides/notesSlide1.xml').async('string');assert.ok(notes.includes('Speaker notes &amp; source attribution'));
+    const presentation=await zip.file('ppt/presentation.xml').async('string');assert.match(presentation,/cx="12192000" cy="6858000"/);
+    m.slides.reverse();await manifest(m);
+    const reversed=await run(['export',project,'--format','pptx','--json']);assert.deepEqual(reversed.artifacts[0].editability.map(s=>s.slide_id),['next','workflow','intro']);
+    // A failed export must not replace a previously successful file.
+    const good=await readFile(output);
+    await writeFile(source,'<img src="assets/missing.png" alt="missing">');
+    const failed=await run(['export',project,'--format','pptx','--out',output,'--json'],1);assert.deepEqual(failed.artifacts,[]);assert.deepEqual(await readFile(output),good);
+    await writeFile(source,before);await writeFile(script,js);await manifest(original);
   });
   await test('HTML: ordinary static server, subdirectory, navigation, no external requests/dependencies',async()=>{
     const output=path.join(temp,'static','talk');const result=await run(['export',project,'--format','html','--out',output,'--json']);assert.equal(result.artifacts[0].navigation_verified,true);

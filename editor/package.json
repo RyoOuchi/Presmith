@@ -1,0 +1,24 @@
+{
+  "name": "presmith-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "dev": "node build.mjs --watch",
+    "format": "prettier --write src build.mjs index.html",
+    "format:check": "prettier --check src build.mjs index.html"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.16",
+    "@types/react-dom": "19.1.9",
+    "esbuild": "0.25.10",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}

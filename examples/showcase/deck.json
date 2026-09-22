@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "title": "Presmith / CLI + Codex skill",
+  "width": 1280,
+  "height": 720,
+  "slides": [
+    {
+      "id": "intro",
+      "source": "slides/intro.html",
+      "title": "Presmith: A presentation, in source",
+      "notes": "Introduce Presmith as a local prototype for people who already work with a coding agent. The CLI and instruction-only Codex skill have separate responsibilities. Suggested timing: 35 seconds. Sources: repository README.md, Cargo.toml, and plugins/presmith/skills/presmith/SKILL.md."
+    },
+    {
+      "id": "roles",
+      "source": "slides/roles.html",
+      "title": "One deck. Clear responsibilities.",
+      "notes": "Walk left to right. Codex supplies narrative and editing judgment. Rust owns validation, assembly, serving and orchestration. A small Node helper uses Playwright and Chromium for browser work. The CLI has no model API integration. Suggested timing: 45 seconds. Sources: README.md Responsibilities and repository layout; src/main.rs; renderer/render.mjs."
+    },
+    {
+      "id": "source",
+      "source": "slides/source.html",
+      "title": "A deck is a small web project",
+      "notes": "The tree lists the main authored files and omits the bundled runtime and renderer tooling. The HTML is an illustrative fragment, not a separate slide in this deck. deck.json stores dimensions, order and notes. Stable slide IDs and data-element-id values support targeted revisions and findings. Suggested timing: 45 seconds. Source: docs/project/authoring.md."
+    },
+    {
+      "id": "commands",
+      "source": "slides/commands.html",
+      "title": "The command line, end to end",
+      "notes": "After init, cd into my-talk. Setup explicitly downloads pinned local dependencies and Chromium. Doctor probes capabilities without installing. Preview only needs the Rust binary. Keep preview running and run checks in a second terminal. JSON results include findings and artifact paths. Suggested timing: 60 seconds. Sources: presmith --help and docs/project/cli.md."
+    },
+    {
+      "id": "skill",
+      "source": "slides/skill.html",
+      "title": "A prompt becomes a working deck",
+      "notes": "This is an illustrative request, adapted from the repository documentation. The Presmith skill is a SKILL.md plus references, not another rendering service. It asks the agent to inspect project instructions and changes, outline the narrative, edit source, and actually view renders. Source: plugins/presmith/skills/presmith/SKILL.md. Suggested timing: 45 seconds."
+    },
+    {
+      "id": "revision",
+      "source": "slides/revision.html",
+      "title": "A revision can stay on one slide",
+      "notes": "The number is the intended scope of an illustrative request, not a measured productivity result. workflow is the example target ID. Preserve unrelated slides, facts, notes, IDs and ordering. Scope local CSS selectors to the target slide. Broaden review if shared CSS or scripts change. Suggested timing: 45 seconds. Sources: skill SKILL.md and references/revision.md."
+    },
+    {
+      "id": "quality",
+      "source": "slides/quality.html",
+      "title": "Checks and visual judgment",
+      "notes": "The left column is automated and the right column requires judgment. Diagnostics do not establish narrative quality, contrast, semantic accessibility, visual occlusion, SVG internals or canvas correctness. The skill caps the repair loop at three passes and requires honest reporting of unresolved issues. Suggested timing: 45 seconds. Sources: docs/project/diagnostics.md and skill SKILL.md."
+    },
+    {
+      "id": "interactive",
+      "source": "slides/interactive.html",
+      "title": "Live controls. Defined export state.",
+      "notes": "Demonstrate the slider at 48px and 88px, then return to 72px. The displayed snippet matches the registration in scripts/custom.js. init connects the input and export resets the value. The export hook is repeatable. There is no benchmark or product metric in this demo. Suggested timing: 60 seconds. Source: docs/project/runtime.md and this deck scripts/custom.js."
+    },
+    {
+      "id": "exports",
+      "source": "slides/exports.html",
+      "title": "One source, two ways to share",
+      "notes": "HTML remains interactive and is verified through HTTP with external requests blocked and navigation exercised. It must be served over HTTP, not opened through file://. PDF is static and the renderer parses it to check exactly one page per slide. HTML contains embedded speaker notes. Font metrics may vary between systems. Suggested timing: 40 seconds. Sources: docs/project/runtime.md and docs/project/cli.md."
+    },
+    {
+      "id": "start",
+      "source": "slides/start.html",
+      "title": "Your story. Your source files.",
+      "notes": "Close with the first concrete commands. These assume the Rust CLI is already built or installed and the Codex skill is available. The CLI and skill install separately. Presmith is a provisional local prototype and this deck makes no claims about publication, cloud hosting or PowerPoint output. Suggested timing: 30 seconds. Sources: README.md, Cargo.toml and docs/plugin.md."
+    }
+  ],
+  "styles": [
+    "styles/theme.css",
+    "styles/custom.css"
+  ],
+  "scripts": [
+    "scripts/custom.js"
+  ]
+}

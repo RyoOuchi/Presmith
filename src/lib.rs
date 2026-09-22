@@ -1,4 +1,5 @@
 pub mod assemble;
+pub mod editor;
 pub mod manifest;
 pub mod process;
 pub mod server;
@@ -30,14 +31,84 @@ pub fn init(directory: &Path) -> Result<()> {
     }
     fs::create_dir_all(directory.join("assets"))?;
     eprintln!(
-        "Created {}. No dependencies installed.\nNext steps:\n  cd '{}'\n  decksmith setup\n  decksmith doctor\n  decksmith dev --open\n  decksmith check\n  decksmith render\n  decksmith export --format html\n  decksmith export --format pdf",
+        "Created {}. No dependencies installed.\nNext steps:\n  cd '{}'\n  presmith setup\n  presmith doctor\n  presmith dev --open\n  presmith check\n  presmith render\n  presmith export --format html\n  presmith export --format pdf\n  presmith export --format pptx",
         directory.display(),
         directory.display()
     );
     Ok(())
 }
 pub fn setup(directory: &Path) -> Result<()> {
+    setup_with_upgrade(directory, false)
+}
+/// Refresh only bundled renderer files. Preserve a backup of every replaced file,
+/// custom renderer files, installed dependencies, and all authored deck sources.
+pub fn upgrade_renderer(root: &Path) -> Result<PathBuf> {
+    let root = root.canonicalize()?;
+    for relative in [
+        ".decksmith",
+        ".decksmith/renderer-backups",
+        "tooling",
+        "tooling/renderer",
+    ] {
+        if root.join(relative).is_symlink() {
+            bail!("Refusing to upgrade through a symlink: {relative}");
+        }
+    }
+    let backup_root = root.join(".decksmith/renderer-backups");
+    fs::create_dir_all(&backup_root)?;
+    if !backup_root.canonicalize()?.starts_with(&root) {
+        bail!("Renderer backup directory must remain inside the deck");
+    }
+    let backup = tempfile::Builder::new()
+        .prefix("upgrade-")
+        .tempdir_in(backup_root)?
+        .keep();
+    let renderer = root.join("tooling/renderer");
+    fs::create_dir_all(&renderer)?;
+    if !renderer.canonicalize()?.starts_with(&root) {
+        bail!("Renderer directory must remain inside the deck");
+    }
+    // Back up all replacements before changing any renderer files.
+    for (name, _) in ASSETS {
+        if let Some(relative) = name.strip_prefix("tooling/renderer/") {
+            let existing = renderer.join(relative);
+            if existing.is_symlink() {
+                bail!(
+                    "Refusing to replace symlink renderer asset: {}",
+                    existing.display()
+                );
+            }
+            if existing.exists() {
+                if !existing.is_file() {
+                    bail!(
+                        "Refusing to replace non-file renderer asset: {}",
+                        existing.display()
+                    );
+                }
+                let target = backup.join(relative);
+                fs::create_dir_all(target.parent().unwrap())?;
+                fs::copy(existing, target)?;
+            }
+        }
+    }
+    for (name, data) in ASSETS {
+        if let Some(relative) = name.strip_prefix("tooling/renderer/") {
+            let target = renderer.join(relative);
+            fs::create_dir_all(target.parent().unwrap())?;
+            fs::write(target, data)?;
+        }
+    }
+    Ok(backup)
+}
+pub fn setup_with_upgrade(directory: &Path, upgrade: bool) -> Result<()> {
     let (root, _) = manifest::load(directory)?;
+    if upgrade {
+        let backup = upgrade_renderer(&root)?;
+        eprintln!(
+            "Updated renderer; previous files backed up to {}",
+            backup.display()
+        );
+    }
     process::run(
         Command::new("node").args([
             "-e",
@@ -46,11 +117,11 @@ pub fn setup(directory: &Path) -> Result<()> {
         None,
         Duration::from_secs(15),
     )
-    .context("Node.js 22+ is required. Install Node.js with npm, then rerun decksmith setup")?;
+    .context("Node.js 22+ is required. Install Node.js with npm, then rerun presmith setup")?;
     let dir = root.join("tooling/renderer");
     if !dir.join("package-lock.json").is_file() {
         bail!(
-            "Missing tooling/renderer/package-lock.json; restore renderer files from a fresh decksmith init project"
+            "Missing tooling/renderer/package-lock.json; restore renderer files from a fresh presmith init project"
         );
     }
     eprintln!("Installing pinned renderer dependencies locally…");
@@ -62,7 +133,7 @@ pub fn setup(directory: &Path) -> Result<()> {
         None,
         Duration::from_secs(600),
     )
-    .context("npm ci failed. Check npm and network access, then rerun decksmith setup")?;
+    .context("npm ci failed. Check npm and network access, then rerun presmith setup")?;
     eprintln!("{output}Installing project-local Chromium…");
     let output = process::run(Command::new("node").args(["node_modules/playwright/cli.js", "install", "chromium"]).env("PLAYWRIGHT_BROWSERS_PATH", dir.join(".browsers")).current_dir(&dir), None, Duration::from_secs(600)).context("Chromium installation failed. Check network/disk space. On Linux install Playwright system libraries; see README")?;
     eprintln!("{output}");
@@ -70,7 +141,13 @@ pub fn setup(directory: &Path) -> Result<()> {
     if probe["success"] != true {
         bail!("Chromium could not launch: {}", probe["error"]);
     }
-    eprintln!("Ready: preview, checks, screenshots, HTML verification and PDF export.");
+    if probe["capabilities"]["pptx_export"] == true {
+        eprintln!("Ready: preview, checks, screenshots, HTML, PDF and PPTX export.");
+    } else {
+        eprintln!(
+            "Ready: preview, checks, screenshots, HTML and PDF export. For PPTX, run presmith setup --upgrade-renderer."
+        );
+    }
     Ok(())
 }
 pub fn envelope(command: &str) -> Value {
@@ -79,7 +156,7 @@ pub fn envelope(command: &str) -> Value {
 pub fn doctor(directory: &Path) -> (Value, i32) {
     let mut result = envelope("doctor");
     let loaded = manifest::load(directory);
-    let mut capabilities = json!({"preview":false,"check":false,"render":false,"html_export":false,"pdf_export":false});
+    let mut capabilities = json!({"preview":false,"check":false,"render":false,"html_export":false,"pdf_export":false,"pptx_export":false});
     let mut code = 0;
     match loaded {
         Ok((root, m)) => {
@@ -97,6 +174,7 @@ pub fn doctor(directory: &Path) -> (Value, i32) {
                         capabilities[key] = json!(true);
                     }
                     result["runtime"] = v["runtime"].clone();
+                    capabilities["pptx_export"] = json!(v["capabilities"]["pptx_export"] == true);
                 }
                 other => {
                     code = 2;
@@ -210,6 +288,11 @@ pub fn browser_command(
     format: Option<&str>,
 ) -> Result<Value> {
     let (root, m) = manifest::load(directory)?;
+    if format == Some("pptx") && !root.join("tooling/renderer/pptx.mjs").is_file() {
+        bail!(
+            "This deck's renderer predates PPTX export. Run presmith setup --upgrade-renderer in the deck directory; old renderer files will be backed up."
+        );
+    }
     if let Some(id) = slide
         && !m.slides.iter().any(|s| s.id == id)
     {
@@ -232,6 +315,7 @@ pub fn browser_command(
         "render" => Some(output_path(&root, out, ".decksmith/render")?),
         "html" => Some(output_path(&root, out, "dist/html")?),
         "pdf" => Some(output_path(&root, out, "dist/deck.pdf")?),
+        "pptx" => Some(output_path(&root, out, "dist/deck.pptx")?),
         _ => None,
     };
     let server = server::LocalServer::start(files.clone(), 0, false)?;
@@ -248,16 +332,17 @@ pub fn browser_command(
         if action == "html" {
             assemble::write_files(scratch.path(), &files)?;
         }
-        let source = if action == "pdf" {
-            scratch.path().join("deck.pdf")
+        let single_file = action == "pdf" || action == "pptx";
+        let source = if single_file {
+            scratch.path().join(format!("deck.{action}"))
         } else {
             scratch.path().to_owned()
         };
-        install_output(&source, &target, action != "pdf")?;
+        install_output(&source, &target, !single_file)?;
         if let Some(artifacts) = result["artifacts"].as_array_mut() {
             for artifact in artifacts {
                 let relative = artifact["path"].as_str().unwrap_or("");
-                artifact["path"] = json!(if action == "pdf" || action == "html" {
+                artifact["path"] = json!(if single_file || action == "html" {
                     target.clone()
                 } else {
                     target.join(relative)

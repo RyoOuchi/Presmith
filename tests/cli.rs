@@ -1,4 +1,4 @@
-use decksmith::{assemble, manifest};
+use presmith::{assemble, manifest};
 use serde_json::{Value, json};
 use std::{
     fs,
@@ -7,7 +7,7 @@ use std::{
 };
 use tempfile::TempDir;
 fn cli(cwd: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_decksmith"))
+    Command::new(env!("CARGO_BIN_EXE_presmith"))
         .current_dir(cwd)
         .args(args)
         .output()
@@ -15,7 +15,7 @@ fn cli(cwd: &Path, args: &[&str]) -> Output {
 }
 fn fresh() -> TempDir {
     let temp = tempfile::tempdir().unwrap();
-    decksmith::init(temp.path()).unwrap();
+    presmith::init(temp.path()).unwrap();
     temp
 }
 fn edit(root: &Path, f: impl FnOnce(&mut Value)) {
@@ -36,6 +36,7 @@ fn compiled_binary_initializes_outside_checkout_with_spaces() {
         "lib/decksmith.js",
         "tooling/renderer/package-lock.json",
         "tooling/renderer/render.mjs",
+        "tooling/renderer/pptx.mjs",
         "AGENTS.md",
         "README.md",
         "docs/runtime.md",
@@ -46,6 +47,64 @@ fn compiled_binary_initializes_outside_checkout_with_spaces() {
         );
     }
     assert!(!project.join("tooling/renderer/node_modules").exists());
+}
+#[test]
+fn renderer_upgrade_backs_up_modified_files_and_preserves_authored_sources() {
+    let t = fresh();
+    let renderer = t.path().join("tooling/renderer");
+    fs::write(renderer.join("render.mjs"), "custom renderer").unwrap();
+    fs::write(renderer.join("custom.mjs"), "keep extra file").unwrap();
+    let before = fs::read(t.path().join("slides/intro.html")).unwrap();
+    let backup = presmith::upgrade_renderer(t.path()).unwrap();
+    assert_eq!(
+        fs::read_to_string(backup.join("render.mjs")).unwrap(),
+        "custom renderer"
+    );
+    assert!(
+        fs::read_to_string(renderer.join("render.mjs"))
+            .unwrap()
+            .contains("writePptx")
+    );
+    assert_eq!(
+        fs::read_to_string(renderer.join("custom.mjs")).unwrap(),
+        "keep extra file"
+    );
+    assert_eq!(
+        fs::read(t.path().join("slides/intro.html")).unwrap(),
+        before
+    );
+}
+#[test]
+fn old_renderer_pptx_request_has_actionable_upgrade_error() {
+    let t = fresh();
+    fs::remove_file(t.path().join("tooling/renderer/pptx.mjs")).unwrap();
+    let out = cli(t.path(), &["export", "--format", "pptx", "--json"]);
+    assert_eq!(out.status.code(), Some(2));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert!(
+        v["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("setup --upgrade-renderer")
+    );
+    assert_eq!(v["artifacts"], json!([]));
+}
+#[test]
+#[cfg(unix)]
+fn renderer_upgrade_rejects_dangling_asset_symlinks() {
+    let t = fresh();
+    let other = tempfile::tempdir().unwrap();
+    let target = other.path().join("must-not-be-created.mjs");
+    let asset = t.path().join("tooling/renderer/pptx.mjs");
+    fs::remove_file(&asset).unwrap();
+    std::os::unix::fs::symlink(&target, &asset).unwrap();
+    let before = fs::read(t.path().join("tooling/renderer/render.mjs")).unwrap();
+    assert!(presmith::upgrade_renderer(t.path()).is_err());
+    assert!(!target.exists());
+    assert_eq!(
+        fs::read(t.path().join("tooling/renderer/render.mjs")).unwrap(),
+        before
+    );
 }
 #[test]
 fn never_overwrites_nonempty_directory() {
@@ -154,13 +213,13 @@ fn missing_dependencies_are_not_reported_as_success() {
         v["error"]["message"]
             .as_str()
             .unwrap()
-            .contains("decksmith setup")
+            .contains("presmith setup")
     );
 }
 #[test]
 fn json_usage_errors_are_parseable() {
     let t = tempfile::tempdir().unwrap();
-    let out = cli(t.path(), &["export", "--format", "pptx", "--json"]);
+    let out = cli(t.path(), &["export", "--format", "unknown", "--json"]);
     assert_eq!(out.status.code(), Some(2));
     let v: Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(v["error"]["kind"], "usage");
@@ -190,7 +249,7 @@ fn output_cannot_replace_authored_sources() {
 #[test]
 fn setup_with_missing_node_is_actionable() {
     let t = fresh();
-    let out = Command::new(env!("CARGO_BIN_EXE_decksmith"))
+    let out = Command::new(env!("CARGO_BIN_EXE_presmith"))
         .args(["setup", "."])
         .current_dir(t.path())
         .env("PATH", "")
@@ -210,7 +269,7 @@ fn loopback_server_handles_burst_keepalive_connections_and_closes() {
         thread,
         time::Duration,
     };
-    let server = decksmith::server::LocalServer::start(
+    let server = presmith::server::LocalServer::start(
         BTreeMap::from([("index.html".into(), b"hello".to_vec())]),
         0,
         false,

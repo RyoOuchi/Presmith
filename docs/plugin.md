@@ -1,9 +1,9 @@
 # Codex plugin and standalone skill
 
-The repository contains an instruction-only plugin at `plugins/decksmith/` with
-`skills/decksmith/SKILL.md` and six self-contained references. It does not include
+The repository contains an instruction-only plugin at `plugins/presmith/` with
+`skills/presmith/SKILL.md` and self-contained workflow references. It does not include
 hooks, apps, MCP, model API credentials or a CLI binary. Install/build the Rust CLI
-separately and make `decksmith` available in the coding agent's PATH.
+separately and make `presmith` available in the coding agent's PATH.
 
 ## Local plugin installation (opt-in)
 
@@ -19,7 +19,7 @@ mkdir -p .agents/plugins
 # Only copy this when there is no existing marketplace.json to preserve.
 cp docs/plugin-marketplace.example.json .agents/plugins/marketplace.json
 codex plugin marketplace add "$PWD"
-codex plugin add decksmith@decksmith-local
+codex plugin add presmith@presmith-local
 ```
 
 If a repository catalog already exists, merge the sample's one plugin entry into
@@ -42,12 +42,12 @@ From the target deck's directory (replace the source path with this checkout):
 
 ```sh
 mkdir -p .agents/skills
-cp -R /absolute/path/to/Desksmith/plugins/decksmith/skills/decksmith .agents/skills/decksmith
+cp -R /absolute/path/to/Desksmith/plugins/presmith/skills/presmith .agents/skills/presmith
 ```
 
 Do not overwrite an existing skill directory; update its contents deliberately.
 Codex supports `.agents/skills/` discovery and symlinked skill folders. Copying keeps
-all references inside the installed skill. Invoke `$decksmith` in a task opened in
+all references inside the installed skill. Invoke `$presmith` in a task opened in
 the deck project. No personal marketplace or global configuration change is needed.
 This standalone copy/discovery flow is documented, not installed automatically.
 

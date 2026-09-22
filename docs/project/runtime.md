@@ -65,3 +65,20 @@ so exported HTML includes speaker notes. Do not put confidential notes in a shar
 Pinning Playwright/Chromium improves repeatability on one platform. System-font
 metrics, font versions, OS rasterization and browser/platform differences prevent
 a promise of universal pixel identity. PDF cannot preserve interactive controls.
+
+PPTX export measures each active slide after the same readiness/export hooks.
+Text becomes editable line segments using measured positions, font sizes, colors
+and emphasis. Solid fills, borders, rectangles, ellipses and simple SVG shapes/text
+remain native objects. Images remain pictures. Complex SVG, canvas, controls,
+generated content, clipping, transforms, gradients and other unsupported effects
+use bitmap fallbacks with `pptx.rasterized` warnings. `data-pptx="raster"` explicitly
+requests a picture. This conversion covers common source layouts, not every CSS
+painting rule. Fonts and text metrics can change in Office/Google Slides.
+System sans-serif and common macOS Helvetica/SF faces map to Arial; macOS UI
+monospace faces map to Courier New. Other installed font names are retained.
+
+PPTX preserves slide dimensions, order and speaker notes, validates ZIP integrity
+and slide count, and reports per-slide editability counts. Notes are shared with the
+file. Tables remain individual text/border objects, and charts do not acquire Office
+data tables. Exported objects do not retain HTML behavior, links or CSS rules.
+PPTX/Google Slides edits do not synchronize back to the original source.

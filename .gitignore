@@ -13,3 +13,6 @@
 /examples/product/README.md
 /examples/product/docs/
 /verification/
+
+# The compiled editor is shipped in the Rust binary.
+!editor/build/
