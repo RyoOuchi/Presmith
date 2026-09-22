@@ -7,8 +7,9 @@ and export HTML, PDF or editable PowerPoint files. Your project stays readable a
 **Initialize → ask Codex → preview → check → render and inspect → revise → export.**
 
 Presmith is available as an MIT-licensed macOS Apple Silicon prerelease.
-Download it from [GitHub releases](https://github.com/RyoOuchi/Presmith/releases)
-and follow the [installation guide](docs/install.md). See the
+Install it with `brew install ryoouchi/tap/presmith`, or download it from
+[GitHub releases](https://github.com/RyoOuchi/Presmith/releases).
+Follow the [installation guide](docs/install.md). See the
 [v0.2.0 release notes](docs/releases/v0.2.0.md) for features and preview limitations.
 There is no model API integration, chat UI, account, cloud service, deployment
 feature or MCP server.
@@ -20,16 +21,11 @@ names. Use `presmith` for CLI commands and `$presmith` for the bundled Codex ski
 
 ## Quick start
 
-For the prebuilt CLI, see [Install Presmith](docs/install.md). To build from a source checkout:
-
-Prerequisites: stable Rust/Cargo to build, plus **Node.js 22+ and npm** for browser
-operations. `setup` downloads pinned Playwright packages and Chromium into the deck.
-No global npm packages are needed. Linux may require [Playwright system libraries](https://playwright.dev/docs/browsers#install-system-dependencies).
+On an Apple Silicon Mac with **macOS 14 or newer** and
+[Homebrew](https://brew.sh/) installed:
 
 ```sh
-cargo build --release --locked
-# Optional local CLI installation, explicitly initiated by you:
-cargo install --path . --locked
+brew install ryoouchi/tap/presmith
 
 presmith init my-talk
 cd my-talk
@@ -39,6 +35,13 @@ presmith dev --open
 # Or edit content, appearance, slides and notes visually:
 presmith edit --open
 ```
+
+Homebrew installs Node.js and npm. `setup` downloads pinned Playwright packages and
+Chromium into the deck. No global npm packages are needed. See
+[Install Presmith](docs/install.md) for manual and source installation, or run
+`cargo install --path . --locked` from a source checkout with stable Rust/Cargo.
+Browser operations require **Node.js 22+ and npm**. Linux may require
+[Playwright system libraries](https://playwright.dev/docs/browsers#install-system-dependencies).
 
 Keep preview running; in another terminal inside my-talk:
 

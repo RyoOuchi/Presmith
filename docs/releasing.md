@@ -61,3 +61,25 @@ Check the published release and download its assets to verify their hashes. Do n
 replace an already published version's tag or artifacts; prepare a new version.
 The current package is not Developer ID signed or notarized, and its installation
 guide and release notes disclose that limitation.
+
+## Update Homebrew
+
+The formula lives in [RyoOuchi/homebrew-tap](https://github.com/RyoOuchi/homebrew-tap),
+at `Formula/presmith.rb`. After verifying the published release assets, update its
+URL to the new version and copy the CLI archive's SHA-256 from `SHA256SUMS`.
+Keep the architecture and minimum macOS requirements aligned with the tested release.
+
+Edit the formula in Homebrew's tap checkout (`brew --repository ryoouchi/tap`).
+Validate it on a supported Apple Silicon Mac before committing and pushing the tap:
+
+```sh
+brew audit --strict --online ryoouchi/tap/presmith
+brew style ryoouchi/tap/presmith
+brew reinstall ryoouchi/tap/presmith
+brew test ryoouchi/tap/presmith
+```
+
+The formula test creates a deck and verifies its manifest and bundled runtime files
+without browser downloads. The release checks above cover browser rendering and exports. Users install with
+`brew install ryoouchi/tap/presmith` and update with `brew update` followed by
+`brew upgrade ryoouchi/tap/presmith`.

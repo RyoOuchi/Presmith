@@ -1,7 +1,5 @@
 # Install Presmith
 
-Download the macOS Apple Silicon archive and `SHA256SUMS` from
-[Presmith releases](https://github.com/RyoOuchi/Presmith/releases).
 The v0.2.0 prerelease provides an `aarch64-apple-darwin` binary for Apple Silicon
 Macs. Intel Macs, Linux, and Windows do not have verified binaries in this release.
 Use macOS 14 or newer for the full browser workflow, following
@@ -12,7 +10,34 @@ when building from source. Browser checks, PNG rendering, PDF, and PowerPoint
 export require Node.js 22+ with npm. `presmith setup` downloads the pinned renderer
 packages and Chromium into each deck's `tooling/renderer/` directory.
 
-## Install the binary
+## Install with Homebrew
+
+On an Apple Silicon Mac running macOS 14 or newer, with
+[Homebrew](https://brew.sh/) installed:
+
+```sh
+brew install ryoouchi/tap/presmith
+presmith --version
+```
+
+This adds the [Presmith tap](https://github.com/RyoOuchi/homebrew-tap), verifies the
+release archive's SHA-256 checksum, and installs the CLI plus Node.js with npm.
+Rust is not required. Continue with [Create your first deck](#create-your-first-deck)
+to install the project-local renderer and Chromium.
+
+To update after a new version is published:
+
+```sh
+brew update
+brew upgrade ryoouchi/tap/presmith
+```
+
+To remove the CLI, run `brew uninstall presmith`. Your deck projects remain intact.
+
+## Install the binary manually
+
+Download the macOS Apple Silicon archive and `SHA256SUMS` from
+[Presmith releases](https://github.com/RyoOuchi/Presmith/releases).
 
 Run these commands in the directory containing the downloaded archive and
 `SHA256SUMS`. The checksum file also lists the optional plugin archive; use the
