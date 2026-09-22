@@ -70,8 +70,11 @@ jobs:
           "$PRESMITH_BIN" init "$RUNNER_TEMP/release-deck"
           "$PRESMITH_BIN" setup "$RUNNER_TEMP/release-deck"
           "$PRESMITH_BIN" doctor "$RUNNER_TEMP/release-deck" --json
-          node tests/browser.mjs "$RUNNER_TEMP/release-deck"
-          node tests/editor-browser.mjs "$RUNNER_TEMP/release-deck"
+          python3 scripts/prepare-example.py
+          ln -s "$RUNNER_TEMP/release-deck/tooling/renderer/node_modules" examples/product/tooling/renderer/node_modules
+          ln -s "$RUNNER_TEMP/release-deck/tooling/renderer/.browsers" examples/product/tooling/renderer/.browsers
+          node tests/browser.mjs
+          node tests/editor-browser.mjs
       - name: Save verified release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
