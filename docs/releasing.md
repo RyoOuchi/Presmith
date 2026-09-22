@@ -36,7 +36,7 @@ for the initial preview. Cargo and npm registry publishing remain disabled.
 ## What runs automatically
 
 The build job uses GitHub's standard `macos-15` Apple Silicon runner, Node.js 24,
-and stable Rust. It checks committed editor assets, Rust formatting and Clippy,
+Python 3.12, and stable Rust. It checks committed editor assets, Rust formatting and Clippy,
 Rust tests, and release automation tests. It packages the CLI and plugin with
 licenses, build information, and SHA-256 checksums, then verifies the archives.
 The extracted CLI initializes a fresh deck and installs its renderer and Chromium.
