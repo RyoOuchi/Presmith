@@ -68,6 +68,9 @@ The formula lives in [RyoOuchi/homebrew-tap](https://github.com/RyoOuchi/homebre
 at `Formula/presmith.rb`. After verifying the published release assets, update its
 URL to the new version and copy the CLI archive's SHA-256 from `SHA256SUMS`.
 Keep the architecture and minimum macOS requirements aligned with the tested release.
+The launcher selects `node@24` for renderer compatibility. Test a fresh
+`presmith setup` before changing the Node dependency; Node 26.8.2 stalled while
+extracting Chromium during the initial Homebrew validation.
 
 Edit the formula in Homebrew's tap checkout (`brew --repository ryoouchi/tap`).
 Validate it on a supported Apple Silicon Mac before committing and pushing the tap:

@@ -21,8 +21,9 @@ presmith --version
 ```
 
 This adds the [Presmith tap](https://github.com/RyoOuchi/homebrew-tap), verifies the
-release archive's SHA-256 checksum, and installs the CLI plus Node.js with npm.
-Rust is not required. Continue with [Create your first deck](#create-your-first-deck)
+release archive's SHA-256 checksum, and installs the CLI plus Node.js 24 with npm.
+Presmith automatically uses that tested runtime; your shell's default Node version
+does not need to change. Rust is not required. Continue with [Create your first deck](#create-your-first-deck)
 to install the project-local renderer and Chromium.
 
 To update after a new version is published:

@@ -36,8 +36,8 @@ presmith dev --open
 presmith edit --open
 ```
 
-Homebrew installs Node.js and npm. `setup` downloads pinned Playwright packages and
-Chromium into the deck. No global npm packages are needed. See
+Homebrew installs Node.js 24 and npm and selects that runtime for Presmith.
+`setup` downloads pinned Playwright packages and Chromium into the deck. No global npm packages are needed. See
 [Install Presmith](docs/install.md) for manual and source installation, or run
 `cargo install --path . --locked` from a source checkout with stable Rust/Cargo.
 Browser operations require **Node.js 22+ and npm**. Linux may require
