@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {mkdtemp,readFile,writeFile,mkdir,symlink,rm,cp,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-const repo=process.cwd(),binary=path.join(repo,'target/debug/presmith'),runtime=path.join(repo,'examples/product/tooling/renderer');
+const repo=process.cwd(),binary=path.resolve(process.env.PRESMITH_BIN || path.join(repo,'target/debug/presmith')),runtime=path.join(repo,'examples/product/tooling/renderer');
 process.env.PLAYWRIGHT_BROWSERS_PATH=path.join(runtime,'.browsers');
 const require=createRequire(path.join(runtime,'package.json'));const {chromium}=require('playwright'),JSZip=require('jszip'),{PDFDocument}=require('pdf-lib');
 process.env.PLAYWRIGHT_BROWSERS_PATH=path.join(runtime,'.browsers');
@@ -30,6 +30,14 @@ try{
  const image=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');x.fillStyle='#9fcfce';x.fillRect(0,0,32,32);return c.toDataURL();});await writeFile(path.join(project,'assets/photo.png'),Buffer.from(image.split(',')[1],'base64'));
  let server=await start(project);await page.goto(server.url);await page.getByRole('heading',{name:'Slides',exact:true}).waitFor();
  const frame=()=>page.frameLocator('iframe[title="Presentation canvas"]');
+ // Geometry settles across the canvas and parent frame on separate animation frames.
+ async function aligned(selector){
+  await frame().locator(selector).evaluate(async el=>{
+   const deadline=performance.now()+5000;let actual;
+   do{const overlay=document.getElementById('editor-selection');const a=overlay?.getBoundingClientRect(),b=el.getBoundingClientRect();actual={overlay:a?.toJSON(),element:b.toJSON()};if(a&&b.width>0&&['x','y','width','height'].every(k=>Math.abs(a[k]-b[k])<2))return;await new Promise(requestAnimationFrame);}while(performance.now()<deadline);
+   throw Error('Selection did not align with its element: '+JSON.stringify(actual));
+  });
+ }
  async function select(id){await page.locator('#element-list').selectOption(id);await page.locator('.selection-title').waitFor();await pause(100);}
  async function field(name,value){await page.getByLabel(name,{exact:true}).fill(value);await page.getByLabel(name,{exact:true}).press('Tab');await pause(150);}
  async function save(){await page.getByRole('button',{name:'Save',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.status')?.textContent.includes('Saved'));}
@@ -51,8 +59,8 @@ try{
  await test('nested selection, overlay alignment, scaled resize and positioned drag',async()=>{
   await frame().locator('[data-element-id="nested"]').click();await page.waitForFunction(()=>document.querySelector('#element-list').value==='nested');assert.equal(await page.locator('#element-list').inputValue(),'nested');
   await select('positioned');await page.getByLabel('Canvas zoom').selectOption('0.5');
-  for(const zoom of ['0.5','0.75']){await page.getByLabel('Canvas zoom').selectOption(zoom);await pause(150);const a=await frame().locator('#editor-selection').boundingBox(),b=await frame().locator('[data-element-id="positioned"]').boundingBox();assert.ok(Math.abs(a.x-b.x)<2&&Math.abs(a.y-b.y)<2&&Math.abs(a.width-b.width)<2);}
-  await page.getByLabel('Canvas zoom').selectOption('0.5');const resize=frame().getByRole('button',{name:'Resize se',exact:true});await resize.scrollIntoViewIfNeeded();let box=await resize.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+30,box.y+box.height/2+15,{steps:5});await page.mouse.up();await pause(300);
+  for(const zoom of ['0.5','0.75']){await page.getByLabel('Canvas zoom').selectOption(zoom);await aligned('[data-element-id="positioned"]');}
+  await page.getByLabel('Canvas zoom').selectOption('0.5');await aligned('[data-element-id="positioned"]');const resize=frame().getByRole('button',{name:'Resize se',exact:true});await resize.scrollIntoViewIfNeeded();let box=await resize.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+30,box.y+box.height/2+15,{steps:5});await page.mouse.up();await pause(300);
   assert.equal(await frame().locator('[data-element-id="positioned"]').evaluate(el=>getComputedStyle(el).width),'240px');
   await page.getByRole('button',{name:'Undo',exact:true}).click();await pause(200);assert.equal(await frame().locator('[data-element-id="positioned"]').evaluate(el=>getComputedStyle(el).width),'180px');await page.getByRole('button',{name:'Redo',exact:true}).click();await pause(200);
   const move=frame().getByRole('button',{name:'Move element',exact:true});box=await move.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2-25,box.y+box.height/2-10,{steps:4});await page.mouse.up();await pause(250);
@@ -68,7 +76,7 @@ try{
   const container={key:await frame().locator('[data-slide-id="intro"] .title-layout').getAttribute('data-editor-key')};await select(container.key);await page.getByText('Layout & spacing',{exact:true}).click();await field('Gap','28');await save();assert.equal(await frame().locator('[data-slide-id="intro"] .title-layout').evaluate(el=>getComputedStyle(el).display),'flex');assert.match(await readFile(path.join(project,'slides/intro.html'),'utf8'),new RegExp('data-element-id="'+container.key+'"'));
  });
  await test('composition and multiline canvas input do not navigate slides',async()=>{
-  await select('headline');await frame().locator('[data-slide-id="intro"] [data-element-id="headline"]').dblclick();const h=frame().locator('[data-slide-id="intro"] [data-element-id="headline"]');await h.dispatchEvent('compositionstart');await h.evaluate(el=>{el.innerHTML='Composing 日本語<br><em>line two</em>';});await h.press('ArrowRight');assert.equal(await page.locator('#element-list').inputValue(),'headline');assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isDisabled(),true);await h.dispatchEvent('compositionend');await page.getByRole('heading',{name:'Properties',exact:true}).click();await pause(300);await save();assert.match(await readFile(path.join(project,'slides/intro.html'),'utf8'),/Composing 日本語<br><em>line two<\/em>/);
+  await select('headline');await frame().locator('[data-slide-id="intro"] [data-element-id="headline"]').dblclick();const h=frame().locator('[data-slide-id="intro"] [data-element-id="headline"]');await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='Save'&&b.disabled));await h.dispatchEvent('compositionstart');await h.evaluate(el=>{el.innerHTML='Composing 日本語<br><em>line two</em>';});await h.press('ArrowRight');assert.equal(await page.locator('#element-list').inputValue(),'headline');assert.equal(await page.getByRole('button',{name:'Save',exact:true}).isDisabled(),true);await h.dispatchEvent('compositionend');await page.getByRole('heading',{name:'Properties',exact:true}).click();await pause(300);await save();assert.match(await readFile(path.join(project,'slides/intro.html'),'utf8'),/Composing 日本語<br><em>line two<\/em>/);
  });
  await test('image replacement, alternative text and undo redo use valid local assets',async()=>{
   await select('photo');const second=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=48;c.height=32;c.getContext('2d').fillRect(0,0,48,32);return c.toDataURL();});await page.getByLabel('Replace image',{exact:true}).setInputFiles({name:'photo.png',mimeType:'image/png',buffer:Buffer.from(second.split(',')[1],'base64')});await pause(200);await page.getByRole('button',{name:'Undo',exact:true}).click();await pause(150);assert.equal(await frame().locator('[data-element-id="photo"]').getAttribute('src'),'assets/photo.png');await page.getByRole('button',{name:'Redo',exact:true}).click();await field('Alternative text','A replacement image 日本語');await save();const html=await readFile(path.join(project,'slides/intro.html'),'utf8');assert.match(html,/assets\/editor-[a-f0-9]{64}\.png/);assert.match(html,/alt="A replacement image 日本語"/);assert.equal(await frame().locator('[data-element-id="photo"]').evaluate(el=>el.naturalWidth),48);

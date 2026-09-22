@@ -8,7 +8,20 @@
     "shortDescription": "Source-first presentations with a coding agent",
     "longDescription": "Create and revise HTML decks, run browser checks, inspect renders, and export HTML, PDF or editable PowerPoint files.",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
-    "defaultPrompt": ["Create a presentation with Presmith.", "Revise one slide and inspect the result."]
-  }
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Create a presentation with Presmith.",
+      "Revise one slide and inspect the result."
+    ],
+    "developerName": "RyoOuchi"
+  },
+  "author": {
+    "name": "RyoOuchi",
+    "url": "https://github.com/RyoOuchi"
+  },
+  "repository": "https://github.com/RyoOuchi/Presmith",
+  "license": "MIT"
 }

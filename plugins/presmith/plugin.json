@@ -2,5 +2,11 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "presmith",
   "version": "0.2.1",
-  "description": "Create, inspect and revise local HTML presentations with the Presmith CLI."
+  "description": "Create, inspect and revise local HTML presentations with the Presmith CLI.",
+  "author": {
+    "name": "RyoOuchi",
+    "url": "https://github.com/RyoOuchi"
+  },
+  "repository": "https://github.com/RyoOuchi/Presmith",
+  "license": "MIT"
 }

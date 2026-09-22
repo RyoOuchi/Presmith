@@ -42,6 +42,8 @@ fn main() {
     for (source, target) in [
         ("library/decksmith.css", "lib/decksmith.css"),
         ("library/decksmith.js", "lib/decksmith.js"),
+        ("LICENSE", "lib/LICENSE"),
+        ("LICENSE", "tooling/renderer/LICENSE"),
         ("library/themes/ink.css", "styles/theme.css"),
         ("library/themes/paper.css", "styles/paper.css"),
     ] {

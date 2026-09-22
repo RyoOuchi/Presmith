@@ -6,9 +6,12 @@ and export HTML, PDF or editable PowerPoint files. Your project stays readable a
 
 **Initialize → ask Codex → preview → check → render and inspect → revise → export.**
 
-Presmith and `presmith` are provisional local development names. Nothing is
-published and no name availability is claimed. There is no model API integration,
-chat UI, account, cloud service, deployment feature or MCP server.
+Presmith is available as an MIT-licensed macOS Apple Silicon prerelease.
+Download it from [GitHub releases](https://github.com/RyoOuchi/Presmith/releases)
+and follow the [installation guide](docs/install.md). See the
+[v0.2.0 release notes](docs/releases/v0.2.0.md) for features and preview limitations.
+There is no model API integration, chat UI, account, cloud service, deployment
+feature or MCP server.
 
 The CLI is now named `presmith` (formerly `decksmith`). Existing decks remain
 compatible: `deck.json`, `lib/decksmith.css`, `lib/decksmith.js`, the
@@ -16,6 +19,8 @@ compatible: `deck.json`, `lib/decksmith.css`, `lib/decksmith.js`, the
 names. Use `presmith` for CLI commands and `$presmith` for the bundled Codex skill.
 
 ## Quick start
+
+For the prebuilt CLI, see [Install Presmith](docs/install.md). To build from a source checkout:
 
 Prerequisites: stable Rust/Cargo to build, plus **Node.js 22+ and npm** for browser
 operations. `setup` downloads pinned Playwright packages and Chromium into the deck.
@@ -46,7 +51,7 @@ presmith export --format pdf
 presmith export --format pptx
 ```
 
-Without installing the binary, use `/absolute/path/to/Desksmith/target/release/presmith`
+Without installing the binary, use `/absolute/path/to/Presmith/target/release/presmith`
 in these commands. Init embeds every scaffold/library/helper asset: the compiled
 binary works outside this checkout. Init and doctor never silently install packages.
 Setup is explicit and rerunnable. On a dependency failure, follow doctor's guidance;
@@ -186,6 +191,8 @@ Every slide is checked while active. Hidden slides are inert; navigation ignores
 editable controls and respects stable hashes. Preview reloads preserve the slide.
 
 ## Verification
+
+For packaging and publishing, see [Releasing Presmith](docs/releasing.md).
 
 ```sh
 cargo fmt --check

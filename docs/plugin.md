@@ -9,8 +9,9 @@ separately and make `presmith` available in the coding agent's PATH.
 
 Current official packaging guidance supports a portable root `plugin.json` and a
 `.codex-plugin/plugin.json` compatibility overlay. Both are included. Skill discovery
-uses `skills/`. No author identity, email, repository URL or name-availability claim
-is fabricated. This is a local provisional name, not a published package.
+uses `skills/`. The plugin is published by RyoOuchi under the MIT license.
+A downloadable plugin archive is included in the
+[Presmith release](https://github.com/RyoOuchi/Presmith/releases/tag/v0.2.0).
 
 From this repository, **if you want to make a local marketplace available**:
 
@@ -42,7 +43,7 @@ From the target deck's directory (replace the source path with this checkout):
 
 ```sh
 mkdir -p .agents/skills
-cp -R /absolute/path/to/Desksmith/plugins/presmith/skills/presmith .agents/skills/presmith
+cp -R /absolute/path/to/Presmith/plugins/presmith/skills/presmith .agents/skills/presmith
 ```
 
 Do not overwrite an existing skill directory; update its contents deliberately.
@@ -55,12 +56,9 @@ This standalone copy/discovery flow is documented, not installed automatically.
 
 The skill passes the available `skill-creator/scripts/quick_validate.py`. The root
 plugin manifest validates against the official Agent Plugins 1.0.0 JSON schema.
-The available `plugin-creator/scripts/validate_plugin.py` was also run: its older,
-more restrictive ingestion profile requires `author` and `interface.developerName`.
-It reports these two missing publisher fields. They were deliberately left absent
-because no real publisher identity was supplied. The current official portable
-schema allows their omission. Do not invent an identity to make the legacy checker
-green. This distinction is a packaging validation limitation, not a runtime test.
+The `.codex-plugin/plugin.json` compatibility manifest includes `author` and
+`interface.developerName`, using the repository owner RyoOuchi. The release also
+validates this manifest with `plugin-creator/scripts/validate_plugin.py`.
 
 Sources checked during implementation:
 

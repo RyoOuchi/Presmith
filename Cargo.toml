@@ -3,6 +3,8 @@ name = "presmith"
 version = "0.2.0"
 edition = "2024"
 publish = false
+license = "MIT"
+repository = "https://github.com/RyoOuchi/Presmith"
 description = "Local, source-first presentations for coding agents"
 
 [dependencies]
